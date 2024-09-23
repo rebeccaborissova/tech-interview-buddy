@@ -1,4 +1,4 @@
-module CEN3031_TESTING
+module tech-interview-buddy
 
 go 1.23.1
 
