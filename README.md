@@ -6,4 +6,4 @@
   - `go run .`
 
 # Jira Board
-https://rebeccaborissov.atlassian.net/jira/software/projects/SCRUM/boards/1/timeline
+[link!](https://rebeccaborissov.atlassian.net/jira/software/projects/SCRUM/boards/1/timeline)
