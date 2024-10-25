@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"unicode"
 
+	"github.com/alexedwards/argon2id"
 	_ "github.com/lib/pq"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -79,6 +80,8 @@ func main() {
 	classYear = 3
 
 	insertAccount(email, password, firstName, lastName, tookDSA, knowPython, knowCPP, classYear, usersCollection)
+	password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
+	fmt.Println(password)
 
 	// UPDATE OPERATION
 
@@ -86,10 +89,15 @@ func main() {
 	fmt.Println("I am not dead. Yay!")
 }
 
-// TODO: CHANGE PASSWORD
-/*func updatePassword(email, password string, uses *mongo.Collection) (passwordChanged bool) {
-	filter := bson.D{{"email", email}}
-}*/
+func updatePassword(email, password string, users *mongo.Collection) (passErr error) {
+	filter := bson.D{{Key: "email", Value: email}}
+
+	password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "password", Value: password}}}}
+
+	_, err := users.UpdateOne(context.TODO(), filter, update)
+	return err
+}
 
 // Assumption that the user will be deleting their account while logged in so there is always be an account.
 // Just in case, an err will return.
@@ -161,6 +169,7 @@ func insertAccount(email, password, first, last string, dsa, python, cpp bool, y
 
 	if isValid {
 		// Make password encryption here.
+		password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
 		user := NewAccount(email, password, first, last, dsa, python, cpp, year)
 		_, err := users.InsertOne(context.TODO(), user)
 		if err != nil {

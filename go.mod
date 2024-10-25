@@ -2,11 +2,12 @@ module GO_PRACTICE_PROJECT
 
 go 1.23.1
 
-require (
-	github.com/lib/pq v1.10.9
-)
+require github.com/lib/pq v1.10.9
+
+require golang.org/x/sys v0.23.0 // indirect
 
 require (
+	github.com/alexedwards/argon2id v1.0.0
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
