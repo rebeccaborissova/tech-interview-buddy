@@ -1,101 +1,141 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+const Login = () => {
+  const router = useRouter();
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      setError("Please enter your email and password.");
+      return;
+    }
+
+    try {
+      // Placeholder for login logic
+      console.log("Logging in with", { email, password });
+      router.push("/dashboard");
+    } catch (err) {
+      setError("Login failed. Please check your credentials.");
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Hiiiiiiii</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div style={styles.container}>
+      <div style={styles.formContainer}>
+        <h1 style={styles.title}>CodeConnect</h1>
+        <form onSubmit={handleLogin} style={styles.form}>
+          <div style={styles.inputContainer}>
+            <label htmlFor="email" style={styles.label}>Email</label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={styles.input}
+              required
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          </div>
+          <div style={styles.inputContainer}>
+            <label htmlFor="password" style={styles.label}>Password</label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={styles.input}
+              required
+            />
+          </div>
+          {error && <p style={styles.error}>{error}</p>}
+          <button type="submit" style={styles.button}>Login</button>
+        </form>
+      </div>
     </div>
   );
-}
+};
+
+// Inline styles for simplicity
+const styles = {
+  container: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100vh",
+    background: "linear-gradient(to right, #6a11cb, #2575fc)",
+  },
+  formContainer: {
+    maxWidth: "400px",
+    width: "100%",
+    padding: "30px",
+    textAlign: "center" as "center",
+    border: "1px solid #ccc",
+    borderRadius: "12px",
+    backgroundColor: "#fff",
+    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
+  },
+  title: {
+    margin: "0 0 20px 0",
+    fontSize: "28px",
+    fontWeight: "bold" as "bold",
+    color: "#333",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column" as "column",
+  },
+  inputContainer: {
+    margin: "15px 0",
+  },
+  label: {
+    display: "block",
+    marginBottom: "5px",
+    fontSize: "14px",
+    fontWeight: "600",
+    color: "#444",
+    textAlign: "left" as "left",
+  },
+  input: {
+    width: "100%",
+    padding: "12px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    fontSize: "16px",
+  },
+  button: {
+    padding: "12px",
+    backgroundColor: "#0070f3",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "16px",
+    transition: "background 0.3s",
+    marginTop: "10px",
+  },
+  buttonHover: {
+    backgroundColor: "#005bb5",
+  },
+  error: {
+    color: "red",
+    margin: "10px 0",
+  },
+  logoContainer: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "10px",
+    marginTop: "20px",
+  },
+  logo: {
+    width: "30px",
+    height: "30px",
+  },
+};
+
+export default Login;
