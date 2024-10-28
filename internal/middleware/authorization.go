@@ -9,7 +9,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var UnauthorizedError = errors.New("Invalid username or token.")
+// Declare errors
+var BlankHeadersError = errors.New("Username or password cannot be blank")
+var UserNotFoundError = errors.New("Invalid username")
+var UnauthorizedError = errors.New("Invalid password")
 
 func Authorization(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, router *http.Request) {
@@ -18,8 +21,8 @@ func Authorization(next http.Handler) http.Handler {
 		var err error
 
 		if username == "" || token == "" {
-			log.Error(UnauthorizedError)
-			api.RequestErrorHandler(writer, UnauthorizedError)
+			log.Error(BlankHeadersError)
+			api.RequestErrorHandler(writer, BlankHeadersError)
 			return
 		}
 
@@ -30,16 +33,22 @@ func Authorization(next http.Handler) http.Handler {
 			return
 		}
 
+		// Get account with primary key "username"
 		usersCollection := store.DB.Collection("users")
 		account := tools.EmailInDatabase(username, usersCollection)
+		if account == nil {
+			log.Error(UserNotFoundError)
+			api.RequestErrorHandler(writer, UserNotFoundError)
+		}
+
+		// Check if provided token is valid
 		isValidToken, err := tools.IsCorrectPassword(username, token, usersCollection)
 		if err != nil {
 			api.InternalErrorHandler(writer)
 			return
 		}
 
-		// Check if provided token is valid
-		if account == nil || !isValidToken {
+		if !isValidToken {
 			log.Error(UnauthorizedError)
 			api.RequestErrorHandler(writer, UnauthorizedError)
 			return
