@@ -8,6 +8,7 @@ import (
 
 	"github.com/alexedwards/argon2id"
 	_ "github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -43,6 +44,7 @@ func NewPostgresStore() (*PostgresStore, error) {
 func UpdatePassword(email, password string, users *mongo.Collection) (passErr error) {
 	filter := bson.D{{Key: "email", Value: email}}
 
+	// TODO: argon2id.DefaultParams should be changed once in production, okay for dev
 	password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "password", Value: password}}}}
 
@@ -50,19 +52,31 @@ func UpdatePassword(email, password string, users *mongo.Collection) (passErr er
 	return err
 }
 
-func IsCorrectPassword(email, password string, users *mongo.Collection) (isValid bool, err error) {
+// Takes a user's email attempted password, and a Mongo collection
+// Returns true is the attempted password matches the stored hashed password
+// Inspired by https://www.alexedwards.net/blog/how-to-hash-and-verify-passwords-with-argon2-in-go
+func IsCorrectPassword(email string, password string, users *mongo.Collection) (match bool, err error) {
+	// var (
+	// 	ErrInvalidHash = errors.New("The encoded hash is not in the correct format")
+	// 	ErrIncompatibleVersion = errors.New("Incompatible version of argon2")
+	// )
+
 	filter := bson.D{{Key: "email", Value: email}}
 	account := users.FindOne(context.TODO(), filter)
 
-	attemptHash, _ := argon2id.CreateHash(password, argon2id.DefaultParams)
 	var decodedAccount bson.M
 	err = account.Decode(&decodedAccount)
-	actualHash := decodedAccount["password"]
-	fmt.Printf("actualHash: %v\n", actualHash)
-	fmt.Printf("attemptHash: %v\n", attemptHash)
+	if err != nil {
+		log.Error(err)
+	}
 
-	var matches bool = (attemptHash == actualHash)
-	return matches, err
+	actualHash := decodedAccount["password"].(string) // type assertion to string
+	match, err = argon2id.ComparePasswordAndHash(password, actualHash)
+
+	fmt.Printf("actualHash: %v\n", actualHash)
+	fmt.Printf("Match: %v\n", match)
+
+	return match, err
 }
 
 // Assumption that the user will be deleting their account while logged in so there is always be an account.
