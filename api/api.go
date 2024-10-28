@@ -16,6 +16,10 @@ type LoginParams struct {
 type LoginResponse struct {
 	// Success code
 	Code int
+
+	Username string
+
+	Message string
 }
 
 // Error response

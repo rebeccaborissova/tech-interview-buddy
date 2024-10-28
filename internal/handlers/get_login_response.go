@@ -7,16 +7,17 @@ import (
 	"GO_PRACTICE_PROJECT/api"
 	"GO_PRACTICE_PROJECT/internal/tools"
 
-	"github.com/gorilla/schema"
+	// "github.com/gorilla/schema"
 	log "github.com/sirupsen/logrus"
 )
 
 func getLoginReponse(writer http.ResponseWriter, router *http.Request) {
 	var params = api.LoginParams{}
-	var decoder *schema.Decoder = schema.NewDecoder()
+	// var decoder *schema.Decoder = schema.NewDecoder()
 	var err error
 
-	err = decoder.Decode(&params, router.Header)
+	params.Username = router.Header.Get("Username")
+	// err = decoder.Decode(&params, router.Header.Get("Username"))
 	if err != nil {
 		log.Error(err)
 		api.InternalErrorHandler(writer)
@@ -40,7 +41,9 @@ func getLoginReponse(writer http.ResponseWriter, router *http.Request) {
 	}
 
 	var response = api.LoginResponse{
-		Code: http.StatusOK,
+		Code:     http.StatusOK,
+		Username: params.Username,
+		Message:  "Successfully authenticated " + params.Username,
 	}
 
 	writer.Header().Set("Content-Type", "application/json")
