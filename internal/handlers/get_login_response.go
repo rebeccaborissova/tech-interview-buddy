@@ -47,6 +47,8 @@ func getLoginReponse(writer http.ResponseWriter, router *http.Request) {
 	}
 
 	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set("Access-Control-Allow-Origin", "http://127.0.0.1:3000")
+	writer.Header().Set("Access-Control-Max-Age", "15")
 	err = json.NewEncoder(writer).Encode(response)
 	if err != nil {
 		log.Error(err)
