@@ -2,6 +2,7 @@ package tools
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"unicode"
@@ -42,14 +43,21 @@ func NewPostgresStore() (*PostgresStore, error) {
 }
 
 func UpdatePassword(email, password string, users *mongo.Collection) (passErr error) {
+	var InvalidPasswordError = errors.New("password does not meet security requirements")
+
 	filter := bson.D{{Key: "email", Value: email}}
 
-	// TODO: argon2id.DefaultParams should be changed once in production, okay for dev
-	password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
-	update := bson.D{{Key: "$set", Value: bson.D{{Key: "password", Value: password}}}}
+	if PasswordValidation(password) {
+		// TODO: argon2id.DefaultParams should be changed once in production, okay for dev
+		password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
+		update := bson.D{{Key: "$set", Value: bson.D{{Key: "password", Value: password}}}}
 
-	_, err := users.UpdateOne(context.TODO(), filter, update)
-	return err
+		_, err := users.UpdateOne(context.TODO(), filter, update)
+		return err
+	} else {
+		return InvalidPasswordError
+	}
+
 }
 
 // Takes a user's email attempted password, and a Mongo collection
@@ -91,7 +99,7 @@ func DeleteAccount(email string, user *mongo.Collection) (err error) {
 
 // Takes the user's password and makes sure that it'll be a little strong
 // A user's password is at least 10 characters, contains a special character, a digit, and at least one capital and lowercase letter.
-func PasswordValidation(password string) (validPassword bool) {
+func PasswordValidation(password string) (validPassword bool) {	
 	re := regexp.MustCompile(`[!@#$%^&*(),.?":{}|<>]`)
 	containsSpecialCharas := re.MatchString(password)
 
@@ -110,7 +118,6 @@ func PasswordValidation(password string) (validPassword bool) {
 // Takes an email and see if it is in the database.
 // Exists - Return an Account object
 // Does not Exist - Return NIL
-// DOES NOT check if the email is a UFL email.
 func EmailInDatabase(email string, user *mongo.Collection) (account *Account) {
 	var acc Account
 	filter := bson.M{"email": email}
@@ -127,10 +134,10 @@ func EmailInDatabase(email string, user *mongo.Collection) (account *Account) {
 }
 
 // Takes a new account created and inserts it into the collection of users.
-// NOTE/TODO: Double check that the email is not in the database.
 func InsertAccount(email, password, first, last string, dsa, python, cpp bool, year int, users *mongo.Collection) (err error) {
 	validation := ValidateAccount(email, password, first, last, users)
 
+	// TODO: Return the println statements as error types instead.
 	isValid := true
 	for i := 0; i < len(validation); i++ {
 		if !validation[i] {
