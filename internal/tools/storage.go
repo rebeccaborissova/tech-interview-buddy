@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 	"unicode"
 
 	"github.com/alexedwards/argon2id"
@@ -40,24 +41,6 @@ func NewPostgresStore() (*PostgresStore, error) {
 	return &PostgresStore{
 		DB: client.Database("tester"), // RETURNS A DATABASE
 	}, nil
-}
-
-func UpdatePassword(email, password string, users *mongo.Collection) (passErr error) {
-	var InvalidPasswordError = errors.New("password does not meet security requirements")
-
-	filter := bson.D{{Key: "email", Value: email}}
-
-	if PasswordValidation(password) {
-		// TODO: argon2id.DefaultParams should be changed once in production, okay for dev
-		password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
-		update := bson.D{{Key: "$set", Value: bson.D{{Key: "password", Value: password}}}}
-
-		_, err := users.UpdateOne(context.TODO(), filter, update)
-		return err
-	} else {
-		return InvalidPasswordError
-	}
-
 }
 
 // Takes a user's email attempted password, and a Mongo collection
@@ -97,9 +80,143 @@ func DeleteAccount(email string, user *mongo.Collection) (err error) {
 	return err
 }
 
+// Takes a new account created and inserts it into the collection of users.
+func InsertAccount(email, password, first, last string, dsa, python, cpp bool, year int, users *mongo.Collection) (err error) {
+	validation := ValidateAccount(email, password, first, last, users)
+
+	// TODO: Return the println statements as error types instead.
+	isValid := true
+	for i := 0; i < len(validation); i++ {
+		if !validation[i] {
+			isValid = false
+			if i == 0 {
+				fmt.Println("Invalid Email. Must be an UFL email or this email is already being used.")
+			} else if i == 1 {
+				fmt.Println("First name must only contain letters.")
+			} else if i == 2 {
+				fmt.Println("Last name must only contain letters.")
+			} else if i == 3 {
+				fmt.Println("Password is invalid. Must be at least 16 characters and contains at least one special character, digit, capital letter, and lowercase letter.")
+			}
+		}
+	}
+
+	if isValid {
+		first = strings.ToUpper(string(first[0])) + strings.ToLower(first[1:])
+		last = strings.ToUpper(string(last[0])) + strings.ToLower(last[1:])
+
+		// Make password encryption here.
+		password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
+		user := NewAccount(email, password, first, last, dsa, python, cpp, year)
+		_, err := users.InsertOne(context.TODO(), user)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// v ALL THE UPDATE FUNCTIONS FOR EACH OF THE FIELDS BESIDES EMAIL v
+func UpdatePassword(email, password string, users *mongo.Collection) (passErr error) {
+	var InvalidPasswordError = errors.New("password does not meet security requirements")
+
+	filter := bson.D{{Key: "email", Value: email}}
+
+	if PasswordValidation(password) {
+		// TODO: argon2id.DefaultParams should be changed once in production, okay for dev
+		password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
+		update := bson.D{{Key: "$set", Value: bson.D{{Key: "password", Value: password}}}}
+
+		_, err := users.UpdateOne(context.TODO(), filter, update)
+		return err
+	} else {
+		return InvalidPasswordError
+	}
+
+}
+
+func UpdateDSA(email string, dsa bool, users *mongo.Collection) (err error) {
+	filter := bson.D{{Key: "email", Value: email}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "TakenDSA", Value: dsa}}}}
+
+	_, err = users.UpdateOne(context.TODO(), filter, update)
+	return err
+}
+
+func UpdatePython(email string, python bool, users *mongo.Collection) (err error) {
+	filter := bson.D{{Key: "email", Value: email}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "KnowsPython", Value: python}}}}
+
+	_, err = users.UpdateOne(context.TODO(), filter, update)
+	return err
+}
+
+func UpdateCPP(email string, cpp bool, users *mongo.Collection) (err error) {
+	filter := bson.D{{Key: "email", Value: email}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "KnowsCPP", Value: cpp}}}}
+
+	_, err = users.UpdateOne(context.TODO(), filter, update)
+	return err
+}
+
+func UpdateYear(email string, year int, users *mongo.Collection) (err error) {
+	filter := bson.D{{Key: "email", Value: email}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "Year", Value: year}}}}
+
+	_, err = users.UpdateOne(context.TODO(), filter, update)
+	return err
+}
+
+func UpdateFirstName(email, firstname string, users *mongo.Collection) (err error) {
+	var InvalidFirstError = errors.New("first name can only contain letters")
+
+	filter := bson.D{{Key: "email", Value: email}}
+	if ContainsLettersOnly(firstname) {
+		update := bson.D{{Key: "$set", Value: bson.D{{Key: "FirstName", Value: firstname}}}}
+
+		_, err = users.UpdateOne(context.TODO(), filter, update)
+		return err
+	} else {
+		return InvalidFirstError
+	}
+}
+
+func UpdateLastName(email, lastname string, users *mongo.Collection) (err error) {
+	var InvalidFirstError = errors.New("last name can only contain letters")
+
+	filter := bson.D{{Key: "email", Value: email}}
+	if ContainsLettersOnly(lastname) {
+		update := bson.D{{Key: "$set", Value: bson.D{{Key: "FirstName", Value: lastname}}}}
+
+		_, err = users.UpdateOne(context.TODO(), filter, update)
+		return err
+	} else {
+		return InvalidFirstError
+	}
+}
+// ^ ALL THE UPDATE FUNCTIONS FOR EACH OF THE FIELDS BESIDES EMAIL ^
+
+// Ensures that attributes are valid. The following are the requirements:
+// Email: Must be a UFL email. Hence the email must contain @ufl.edu and must not already be in the database
+// First Name: Must only contain letters.
+// Last Name: Must only contain letters.
+func ValidateAccount(email, password, first, last string, users *mongo.Collection) (validationString [4]bool) {
+	valid := [4]bool{true, true, true, true}
+	pattern := `@ufl\.edu$`
+	re := regexp.MustCompile(pattern)
+	if !re.MatchString(email) || EmailInDatabase(email, users) != nil {
+		valid[0] = false
+	}
+	valid[1] = ContainsLettersOnly(first)
+	valid[2] = ContainsLettersOnly(last)
+	valid[3] = PasswordValidation(password)
+	return valid
+}
+
 // Takes the user's password and makes sure that it'll be a little strong
 // A user's password is at least 10 characters, contains a special character, a digit, and at least one capital and lowercase letter.
-func PasswordValidation(password string) (validPassword bool) {	
+func PasswordValidation(password string) (validPassword bool) {
 	re := regexp.MustCompile(`[!@#$%^&*(),.?":{}|<>]`)
 	containsSpecialCharas := re.MatchString(password)
 
@@ -133,64 +250,11 @@ func EmailInDatabase(email string, user *mongo.Collection) (account *Account) {
 	return &acc
 }
 
-// Takes a new account created and inserts it into the collection of users.
-func InsertAccount(email, password, first, last string, dsa, python, cpp bool, year int, users *mongo.Collection) (err error) {
-	validation := ValidateAccount(email, password, first, last, users)
-
-	// TODO: Return the println statements as error types instead.
-	isValid := true
-	for i := 0; i < len(validation); i++ {
-		if !validation[i] {
-			isValid = false
-			if i == 0 {
-				fmt.Println("Invalid Email. Must be an UFL email or this email is already being used.")
-			} else if i == 1 {
-				fmt.Println("First name must only contain letters.")
-			} else if i == 2 {
-				fmt.Println("Last name must only contain letters.")
-			} else if i == 3 {
-				fmt.Println("Password is invalid. Must be at least 16 characters and contains at least one special character, digit, capital letter, and lowercase letter.")
-			}
-		}
-	}
-
-	if isValid {
-		// Make password encryption here.
-		password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
-		user := NewAccount(email, password, first, last, dsa, python, cpp, year)
-		_, err := users.InsertOne(context.TODO(), user)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Ensures that attributes are valid. The following are the requirements:
-// Email: Must be a UFL email. Hence the email must contain @ufl.edu and must not already be in the database
-// First Name: Must only contain letters.
-// Last Name: Must only contain letters.
-// NOTE/TODO: I might change this function so that it auto capitalizes the first letter of the name.
-func ValidateAccount(email, password, first, last string, users *mongo.Collection) (validationString [4]bool) {
-	valid := [4]bool{true, true, true, true}
-	pattern := `@ufl\.edu$`
-	re := regexp.MustCompile(pattern)
-	if !re.MatchString(email) || EmailInDatabase(email, users) != nil {
-		valid[0] = false
-	}
-	for _, r := range first {
+func ContainsLettersOnly(str string) (applies bool) {
+	for _, r := range str {
 		if !unicode.IsLetter(r) {
-			valid[1] = false
+			return false
 		}
 	}
-	for _, r := range last {
-		if !unicode.IsLetter(r) {
-			valid[2] = false
-		}
-	}
-	if !PasswordValidation(password) {
-		valid[3] = false
-	}
-	return valid
+	return true
 }
