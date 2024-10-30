@@ -27,7 +27,6 @@ const Login = () => {
           "Authorization": password
         },
         body: JSON.stringify({ email, password }),
-        mode: "no-cors"
       });
 
       if (response.ok) {
@@ -37,7 +36,7 @@ const Login = () => {
           setSuccess("Username and password correct. This user exists in the database.");
           setTimeout(() => router.push("/dashboard"), 2000); // redirect after 2 seconds
         } else {
-          setError("Incorrect password. Please try again.1");
+          setError("Incorrect password. Please try again.");
         }
       } else {
         setError("Network request failed. 400 error.");
