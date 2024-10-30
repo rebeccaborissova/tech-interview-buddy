@@ -38,7 +38,7 @@ func writeError(writer http.ResponseWriter, message string, code int) {
 	}
 
 	writer.Header().Set("Content-Type", "application/json")
-	writer.Header().Set("Access-Control-Allow-Origin", "http://127.0.0.1:3000")
+	writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 	writer.Header().Set("Access-Control-Max-Age", "15")
 	writer.WriteHeader(code)
 
