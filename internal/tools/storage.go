@@ -195,6 +195,7 @@ func UpdateLastName(email, lastname string, users *mongo.Collection) (err error)
 		return InvalidFirstError
 	}
 }
+
 // ^ ALL THE UPDATE FUNCTIONS FOR EACH OF THE FIELDS BESIDES EMAIL ^
 
 // Ensures that attributes are valid. The following are the requirements:
@@ -241,9 +242,6 @@ func EmailInDatabase(email string, user *mongo.Collection) (account *Account) {
 
 	err := user.FindOne(context.TODO(), filter).Decode(&acc)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil
-		}
 		return nil
 	}
 

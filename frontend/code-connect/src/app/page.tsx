@@ -8,60 +8,86 @@ const Login = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState<string>("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
+    if (!email.trim() || !password.trim() ) {
       setError("Please enter your email and password.");
       return;
     }
-
+    console.log("Sending data:", { email, password }); // debugging log to see if correct data sent to POST request
     try {
-      // Placeholder for login logic
-      console.log("Logging in with", { email, password });
-      router.push("/dashboard");
+
+      const response = await fetch("http://localhost:8000/account", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          "Username": email,
+          "Authorization": password
+        })
+      });
+
+      console.log(response);
+      if (response.ok) {
+        const result = await response.json();
+
+
+        if (result.Username) {
+          setSuccess("Username and password correct. This user exists in the database.");
+          setTimeout(() => router.push("/dashboard"), 2000); // redirect after 2 seconds
+        } else {
+          setError("Incorrect password. Please try again.");
+        }
+      } else {
+        setError("Network request failed. 400 error.");
+      }
     } catch (err) {
-      setError("Login failed. Please check your credentials.");
+      console.error("Network request failed:", err); // error log
+      setError("Network response error.");
     }
   };
 
   return (
     <div style={styles.container}>
-      <div style={styles.formContainer}>
-        <h1 style={styles.title}>CodeConnect</h1>
-        <form onSubmit={handleLogin} style={styles.form}>
-          <div style={styles.inputContainer}>
-            <label htmlFor="email" style={styles.label}>Email</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={styles.input}
-              required
-            />
-          </div>
-          <div style={styles.inputContainer}>
-            <label htmlFor="password" style={styles.label}>Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={styles.input}
-              required
-            />
-          </div>
-          {error && <p style={styles.error}>{error}</p>}
-          <button type="submit" style={styles.button}>Login</button>
-        </form>
-      </div>
+    <div style={styles.formContainer}>
+    <h1 style={styles.title}>CodeConnect</h1>
+    <form onSubmit={handleLogin} style={styles.form}>
+    <div style={styles.inputContainer}>
+    <label htmlFor="email" style={styles.label}>Email</label>
+    <input
+    type="email"
+    id="email"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+    style={styles.input}
+    required
+    />
+    </div>
+    <div style={styles.inputContainer}>
+    <label htmlFor="password" style={styles.label}>Password</label>
+    <input
+    type="password"
+    id="password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    style={styles.input}
+    required
+    />
+    </div>
+    {error && <p style={styles.error}>{error}</p>}
+    {success && <p style={styles.success}>{success}</p>}
+    <button type="submit" style={styles.button}>Login</button>
+    </form>
+    </div>
     </div>
   );
 };
 
-// Inline styles for simplicity
+// inline styles for simplicity
 const styles = {
   container: {
     display: "flex",
@@ -107,6 +133,7 @@ const styles = {
     borderRadius: "8px",
     border: "1px solid #ccc",
     fontSize: "16px",
+    color: "#000",
   },
   button: {
     padding: "12px",
@@ -126,16 +153,11 @@ const styles = {
     color: "red",
     margin: "10px 0",
   },
-  logoContainer: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "10px",
-    marginTop: "20px",
-  },
-  logo: {
-    width: "30px",
-    height: "30px",
+  success: {
+    color: "green",
+    margin: "10px 0",
   },
 };
 
 export default Login;
+

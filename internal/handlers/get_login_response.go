@@ -2,41 +2,81 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"GO_PRACTICE_PROJECT/api"
 	"GO_PRACTICE_PROJECT/internal/tools"
-
-	// "github.com/gorilla/schema"
 	log "github.com/sirupsen/logrus"
 )
 
 func getLoginReponse(writer http.ResponseWriter, router *http.Request) {
-	var params = api.LoginParams{}
-	// var decoder *schema.Decoder = schema.NewDecoder()
-	var err error
+	// Declare errors
+	var (
+		MalformedRequestError  = errors.New("Malformed request body")
+		IncompleteRequestError = errors.New("Username or password cannot be blank")
+		UserNotFoundError      = errors.New("User does not exist")
+		UnauthorizedError      = errors.New("Invalid password")
+	)
 
-	params.Username = router.Header.Get("Username")
-	// err = decoder.Decode(&params, router.Header.Get("Username"))
+	// var username = router.Header.Get("Username")
+	// var token = router.Header.Get("Authorization")
+	var (
+		params = api.LoginParams{}
+		err    error
+	)
+
+	fmt.Printf("%v", router)
+
+	// Decode HTTP request body into params struct
+	decoder := json.NewDecoder(router.Body)
+	err = decoder.Decode(&params)
+	fmt.Printf("Error: %v \nBody: %v \nParams: %v \n Header: %v \n", err, router.Body, params, router.Header)
+
 	if err != nil {
-		log.Error(err)
-		api.InternalErrorHandler(writer)
+		log.Error(MalformedRequestError)
+		api.RequestErrorHandler(writer, MalformedRequestError)
+		return
+	}
+
+	var (
+		username = params.Username
+		token    = params.Authorization
+	)
+
+	if username == "" || token == "" {
+		log.Error(IncompleteRequestError)
+		api.RequestErrorHandler(writer, IncompleteRequestError)
 		return
 	}
 
 	// Get an instance of the database
-	var store *tools.PostgresStore
-	store, err = tools.NewPostgresStore()
+	store, err := tools.NewPostgresStore()
 	if err != nil {
 		api.InternalErrorHandler(writer)
 		return
 	}
 
+	// Get account with primary key "username"
 	usersCollection := store.DB.Collection("users")
-	account := tools.EmailInDatabase(params.Username, usersCollection)
+	account := tools.EmailInDatabase(username, usersCollection)
 	if account == nil {
-		log.Error(err)
+		log.Error(UserNotFoundError)
+		api.RequestErrorHandler(writer, UserNotFoundError)
+		return
+	}
+
+	// Check if provided token is valid
+	isValidToken, err := tools.IsCorrectPassword(username, token, usersCollection)
+	if err != nil {
 		api.InternalErrorHandler(writer)
+		return
+	}
+
+	if !isValidToken {
+		log.Error(UnauthorizedError)
+		api.RequestErrorHandler(writer, UnauthorizedError)
 		return
 	}
 
@@ -47,7 +87,7 @@ func getLoginReponse(writer http.ResponseWriter, router *http.Request) {
 	}
 
 	writer.Header().Set("Content-Type", "application/json")
-	writer.Header().Set("Access-Control-Allow-Origin", "http://127.0.0.1:3000")
+	writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 	writer.Header().Set("Access-Control-Max-Age", "15")
 	err = json.NewEncoder(writer).Encode(response)
 	if err != nil {
