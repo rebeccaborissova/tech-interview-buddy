@@ -32,10 +32,9 @@ const Login = () => {
       });
 
       console.log(response);
+      const result = await response.json();
       if (response.ok) {
-        const result = await response.json();
-
-
+        setError(" ")
         if (result.Username) {
           setSuccess("Username and password correct. This user exists in the database.");
           setTimeout(() => router.push("/dashboard"), 2000); // redirect after 2 seconds
@@ -43,7 +42,9 @@ const Login = () => {
           setError("Incorrect password. Please try again.");
         }
       } else {
-        setError("Network request failed. 400 error.");
+        // Display error message from backend
+        setError(result.Message)
+        // setError("Network request failed. 400 error.");
       }
     } catch (err) {
       console.error("Network request failed:", err); // error log

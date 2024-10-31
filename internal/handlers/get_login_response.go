@@ -3,15 +3,20 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
+	"os"
 
 	"GO_PRACTICE_PROJECT/api"
 	"GO_PRACTICE_PROJECT/internal/tools"
+
 	log "github.com/sirupsen/logrus"
 )
 
 func getLoginReponse(writer http.ResponseWriter, router *http.Request) {
+	// Enable logging
+	//log.SetFormatter(&log.JSONFormatter{})
+	log.SetOutput(os.Stdout)
+	
 	// Declare errors
 	var (
 		MalformedRequestError  = errors.New("Malformed request body")
@@ -27,12 +32,16 @@ func getLoginReponse(writer http.ResponseWriter, router *http.Request) {
 		err    error
 	)
 
-	fmt.Printf("%v", router)
-
 	// Decode HTTP request body into params struct
 	decoder := json.NewDecoder(router.Body)
 	err = decoder.Decode(&params)
-	fmt.Printf("Error: %v \nBody: %v \nParams: %v \n Header: %v \n", err, router.Body, params, router.Header)
+
+	log.WithFields(log.Fields{
+		"Decoder error": err,
+		"Login parameters": params,
+		"Request Header": router.Header,
+		"Request Body": router.Body,
+	}).Info("HTTP request received")
 
 	if err != nil {
 		log.Error(MalformedRequestError)
