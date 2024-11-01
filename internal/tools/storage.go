@@ -102,8 +102,8 @@ func InsertAccount(email, password, first, last string, dsa, python, cpp bool, y
 	}
 
 	if isValid {
-		first = strings.ToUpper(string(first[0])) + strings.ToLower(first[1:])
-		last = strings.ToUpper(string(last[0])) + strings.ToLower(last[1:])
+		first = strings.ToUpper(string(first[0])) + first[1:]
+		last = strings.ToUpper(string(last[0])) + last[1:]
 
 		// Make password encryption here.
 		password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
@@ -119,7 +119,7 @@ func InsertAccount(email, password, first, last string, dsa, python, cpp bool, y
 
 // v ALL THE UPDATE FUNCTIONS FOR EACH OF THE FIELDS BESIDES EMAIL v
 func UpdatePassword(email, password string, users *mongo.Collection) (passErr error) {
-	var InvalidPasswordError = errors.New("password does not meet security requirements")
+	var ErrInvalidPassword = errors.New("password does not meet security requirements")
 
 	filter := bson.D{{Key: "email", Value: email}}
 
@@ -131,7 +131,7 @@ func UpdatePassword(email, password string, users *mongo.Collection) (passErr er
 		_, err := users.UpdateOne(context.TODO(), filter, update)
 		return err
 	} else {
-		return InvalidPasswordError
+		return ErrInvalidPassword
 	}
 
 }
@@ -169,7 +169,7 @@ func UpdateYear(email string, year int, users *mongo.Collection) (err error) {
 }
 
 func UpdateFirstName(email, firstname string, users *mongo.Collection) (err error) {
-	var InvalidFirstError = errors.New("first name can only contain letters")
+	var ErrInvalidFirst = errors.New("first name can only contain letters")
 
 	filter := bson.D{{Key: "email", Value: email}}
 	if ContainsLettersOnly(firstname) {
@@ -178,12 +178,12 @@ func UpdateFirstName(email, firstname string, users *mongo.Collection) (err erro
 		_, err = users.UpdateOne(context.TODO(), filter, update)
 		return err
 	} else {
-		return InvalidFirstError
+		return ErrInvalidFirst
 	}
 }
 
 func UpdateLastName(email, lastname string, users *mongo.Collection) (err error) {
-	var InvalidFirstError = errors.New("last name can only contain letters")
+	var ErrInvalidFirst = errors.New("last name can only contain letters")
 
 	filter := bson.D{{Key: "email", Value: email}}
 	if ContainsLettersOnly(lastname) {
@@ -192,7 +192,7 @@ func UpdateLastName(email, lastname string, users *mongo.Collection) (err error)
 		_, err = users.UpdateOne(context.TODO(), filter, update)
 		return err
 	} else {
-		return InvalidFirstError
+		return ErrInvalidFirst
 	}
 }
 
@@ -202,6 +202,8 @@ func UpdateLastName(email, lastname string, users *mongo.Collection) (err error)
 // Email: Must be a UFL email. Hence the email must contain @ufl.edu and must not already be in the database
 // First Name: Must only contain letters.
 // Last Name: Must only contain letters.
+// Password has been checked for requirements and that it matches when the user retypes that password.
+// NO FIELD SHOULD BE EMPTY
 func ValidateAccount(email, password, first, last string, users *mongo.Collection) (validationString [4]bool) {
 	valid := [4]bool{true, true, true, true}
 	pattern := `@ufl\.edu$`
