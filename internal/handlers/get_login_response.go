@@ -20,8 +20,7 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		// Declare errors
 		MalformedRequestError  = errors.New("Malformed request body")
 		IncompleteRequestError = errors.New("Username or password cannot be blank")
-		UserNotFoundError      = errors.New("User does not exist")
-		UnauthorizedError      = errors.New("Invalid password")
+		UnauthorizedError      = errors.New("Invalid username or password")
 
 		params = api.LoginParams{}
 		err    error
@@ -65,8 +64,8 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 	usersCollection := store.DB.Collection("users")
 	account := tools.EmailInDatabase(username, usersCollection)
 	if account == nil {
-		log.Error(UserNotFoundError)
-		api.RequestErrorHandler(writer, UserNotFoundError)
+		log.Error(UnauthorizedError)
+		api.RequestErrorHandler(writer, UnauthorizedError)
 		return
 	}
 
