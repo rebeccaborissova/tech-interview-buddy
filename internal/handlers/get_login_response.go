@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"os"
 
 	"GO_PRACTICE_PROJECT/api"
 	"GO_PRACTICE_PROJECT/internal/tools"
@@ -12,35 +11,30 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func getLoginReponse(writer http.ResponseWriter, router *http.Request) {
-	// Enable logging
-	//log.SetFormatter(&log.JSONFormatter{})
-	log.SetOutput(os.Stdout)
-	
-	// Declare errors
+func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
+	// Set logging settings
+	// log.SetFormatter(&log.JSONFormatter{})
+	// log.SetOutput(os.Stdout)
+
 	var (
+		// Declare errors
 		MalformedRequestError  = errors.New("Malformed request body")
 		IncompleteRequestError = errors.New("Username or password cannot be blank")
 		UserNotFoundError      = errors.New("User does not exist")
 		UnauthorizedError      = errors.New("Invalid password")
-	)
 
-	// var username = router.Header.Get("Username")
-	// var token = router.Header.Get("Authorization")
-	var (
 		params = api.LoginParams{}
 		err    error
 	)
 
 	// Decode HTTP request body into params struct
-	decoder := json.NewDecoder(router.Body)
+	decoder := json.NewDecoder(request.Body)
 	err = decoder.Decode(&params)
 
 	log.WithFields(log.Fields{
-		"Decoder error": err,
 		"Login parameters": params,
-		"Request Header": router.Header,
-		"Request Body": router.Body,
+		"Request Header":   request.Header,
+		"Request Body":     request.Body,
 	}).Info("HTTP request received")
 
 	if err != nil {
@@ -82,7 +76,6 @@ func getLoginReponse(writer http.ResponseWriter, router *http.Request) {
 		api.InternalErrorHandler(writer)
 		return
 	}
-
 	if !isValidToken {
 		log.Error(UnauthorizedError)
 		api.RequestErrorHandler(writer, UnauthorizedError)
@@ -95,9 +88,7 @@ func getLoginReponse(writer http.ResponseWriter, router *http.Request) {
 		Message:  "Successfully authenticated " + params.Username,
 	}
 
-	writer.Header().Set("Content-Type", "application/json")
-	writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-	writer.Header().Set("Access-Control-Max-Age", "15")
+	// Send the HTTP response
 	err = json.NewEncoder(writer).Encode(response)
 	if err != nil {
 		log.Error(err)
