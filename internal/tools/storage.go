@@ -85,7 +85,7 @@ func DeleteAccount(email string, user *mongo.Collection) (err error) {
 }
 
 // Takes a new account created and inserts it into the collection of users.
-func InsertAccount(email, password, first, last string, dsa bool, year int, users *mongo.Collection) (err error, valid [4]bool) {
+func InsertAccount(email, password, first, last string, dsa bool, year int, users *mongo.Collection) (err error) {
 	validation := ValidateAccount(email, password, first, last, users)
 
 	// TODO: Return the println statements as error types instead.
@@ -93,15 +93,7 @@ func InsertAccount(email, password, first, last string, dsa bool, year int, user
 	for i := 0; i < len(validation); i++ {
 		if !validation[i] {
 			isValid = false
-			if i == 0 {
-				fmt.Println("Invalid Email. Must be an UFL email or this email is already being used.")
-			} else if i == 1 {
-				fmt.Println("First name must only contain letters.")
-			} else if i == 2 {
-				fmt.Println("Last name must only contain letters.")
-			} else if i == 3 {
-				fmt.Println("Password is invalid. Must be at least 16 characters and contains at least one special character, digit, capital letter, and lowercase letter.")
-			}
+			return errors.New("Does not meet new account requirements")
 		}
 	}
 
@@ -114,11 +106,11 @@ func InsertAccount(email, password, first, last string, dsa bool, year int, user
 		user := NewAccount(email, password, first, last, dsa, year)
 		_, err := users.InsertOne(context.TODO(), user)
 		if err != nil {
-			return err, validation
+			return err
 		}
 	}
-
-	return nil, validation
+	
+	return nil
 }
 
 // v ALL THE UPDATE FUNCTIONS FOR EACH OF THE FIELDS BESIDES EMAIL v

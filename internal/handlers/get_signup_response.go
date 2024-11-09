@@ -19,7 +19,8 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 	var (
 		// Declare errors
 		MalformedRequestError  = errors.New("Malformed request body")
-		IncompleteRequestError = errors.New("Form have empty fields.")
+		IncompleteRequestError = errors.New("There are empty fields")
+		UserExistsError        = errors.New("An account with this email already exists")
 
 		params = api.SignUpParams{}
 		err    error
@@ -64,18 +65,24 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	// Create a new account
 	usersCollection := tools.GetCollection(store.DB)
-	// Change to := if you use the array of bools
-	err, _ = tools.InsertAccount(username, token, firstName, lastName, takenDSA, schoolYear, usersCollection)
+
+	// Check if user already exists
+	account := tools.EmailInDatabase(username, usersCollection)
+	if account != nil {
+		log.Error(UserExistsError)
+		api.RequestErrorHandler(writer, UserExistsError)
+		return
+	}
+
+	// Create a new account
+	err = tools.InsertAccount(username, token, firstName, lastName, takenDSA, schoolYear, usersCollection)
 	if err != nil {
 		api.InternalErrorHandler(writer)
 		return
-	}   
+	}
 
-	/// TODO: here down
-
-	var response = api.LoginResponse{
+	var response = api.SignUpResponse{
 		Code:     http.StatusOK,
 		Username: params.Username,
 		Message:  "Successfully registered " + params.Username,
