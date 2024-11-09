@@ -22,13 +22,24 @@ type LoginResponse struct {
 	Message string
 }
 
-type SignUpParams struct{
+// Sign-Up parameters
+type SignUpParams struct {
 	Username string
 	Authorization string
 	FirstName string
 	LastName string
 	DSA bool
 	Year int
+}
+
+// Sign-Up reponse
+type SignUpResponse struct {
+	// Success code
+	Code int
+
+	Username string
+
+	Message string
 }
 
 // Error response
