@@ -28,14 +28,12 @@ func main() {
 	firstName := "Sarah"
 	lastName := "Tran"
 	tookDSA := true
-	knowPython := true
-	knowCPP := true
 	classYear := 2
 
 	// CREATE OPERATION
 	// TODO: Should I try to make it return an error and like how should I let front-end know what information given was invalid?
 	// TEMPORARILY: Use a string
-	tools.InsertAccount(email, password, firstName, lastName, tookDSA, knowPython, knowCPP, classYear, usersCollection)
+	tools.InsertAccount(email, password, firstName, lastName, tookDSA, classYear, usersCollection)
 	// CREATE OPERATION
 
 	fmt.Println()
@@ -59,11 +57,9 @@ func main() {
 	firstName = "Meow"
 	lastName = "Meow"
 	tookDSA = false
-	knowPython = false
-	knowCPP = false
 	classYear = 1
 
-	tools.InsertAccount(email, password, firstName, lastName, tookDSA, knowPython, knowCPP, classYear, usersCollection)
+	tools.InsertAccount(email, password, firstName, lastName, tookDSA, classYear, usersCollection)
 	deleteErr := tools.DeleteAccount(email, usersCollection)
 	if deleteErr != nil {
 		log.Fatal(deleteErr)
@@ -76,11 +72,9 @@ func main() {
 	firstName = "Mother"
 	lastName = "Three"
 	tookDSA = false
-	knowPython = true
-	knowCPP = true
 	classYear = 3
 
-	tools.InsertAccount(email, password, firstName, lastName, tookDSA, knowPython, knowCPP, classYear, usersCollection)
+	tools.InsertAccount(email, password, firstName, lastName, tookDSA, classYear, usersCollection)
 	password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
 	fmt.Println(password)
 

@@ -43,6 +43,10 @@ func NewPostgresStore() (*PostgresStore, error) {
 	}, nil
 }
 
+func GetCollection(db *mongo.Database) (collection *mongo.Collection) {
+	return db.Collection("users")
+}
+
 // Takes a user's email attempted password, and a Mongo collection
 // Returns true is the attempted password matches the stored hashed password
 // Inspired by https://www.alexedwards.net/blog/how-to-hash-and-verify-passwords-with-argon2-in-go
@@ -81,7 +85,7 @@ func DeleteAccount(email string, user *mongo.Collection) (err error) {
 }
 
 // Takes a new account created and inserts it into the collection of users.
-func InsertAccount(email, password, first, last string, dsa, python, cpp bool, year int, users *mongo.Collection) (err error) {
+func InsertAccount(email, password, first, last string, dsa bool, year int, users *mongo.Collection) (err error, valid [4]bool) {
 	validation := ValidateAccount(email, password, first, last, users)
 
 	// TODO: Return the println statements as error types instead.
@@ -107,14 +111,14 @@ func InsertAccount(email, password, first, last string, dsa, python, cpp bool, y
 
 		// Make password encryption here.
 		password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
-		user := NewAccount(email, password, first, last, dsa, python, cpp, year)
+		user := NewAccount(email, password, first, last, dsa, year)
 		_, err := users.InsertOne(context.TODO(), user)
 		if err != nil {
-			return err
+			return err, validation
 		}
 	}
 
-	return nil
+	return nil, validation
 }
 
 // v ALL THE UPDATE FUNCTIONS FOR EACH OF THE FIELDS BESIDES EMAIL v
@@ -139,22 +143,6 @@ func UpdatePassword(email, password string, users *mongo.Collection) (passErr er
 func UpdateDSA(email string, dsa bool, users *mongo.Collection) (err error) {
 	filter := bson.D{{Key: "email", Value: email}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "TakenDSA", Value: dsa}}}}
-
-	_, err = users.UpdateOne(context.TODO(), filter, update)
-	return err
-}
-
-func UpdatePython(email string, python bool, users *mongo.Collection) (err error) {
-	filter := bson.D{{Key: "email", Value: email}}
-	update := bson.D{{Key: "$set", Value: bson.D{{Key: "KnowsPython", Value: python}}}}
-
-	_, err = users.UpdateOne(context.TODO(), filter, update)
-	return err
-}
-
-func UpdateCPP(email string, cpp bool, users *mongo.Collection) (err error) {
-	filter := bson.D{{Key: "email", Value: email}}
-	update := bson.D{{Key: "$set", Value: bson.D{{Key: "KnowsCPP", Value: cpp}}}}
 
 	_, err = users.UpdateOne(context.TODO(), filter, update)
 	return err

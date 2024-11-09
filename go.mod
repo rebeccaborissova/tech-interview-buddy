@@ -8,7 +8,10 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 )
 
-require golang.org/x/sys v0.23.0 // indirect
+require (
+	github.com/stretchr/testify v1.8.4 // indirect
+	golang.org/x/sys v0.23.0 // indirect
+)
 
 require (
 	github.com/alexedwards/argon2id v1.0.0

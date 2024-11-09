@@ -16,6 +16,7 @@ func Handler(router *chi.Mux) {
 		// Middleware for /account route
 		// router.Use(middleware.Authorization)
 
-		router.Post("/", getLoginReponse)
+		router.Post("/login", getLoginReponse)
+		router.Post("/signup", getSignUpReponse)
 	})
 }
