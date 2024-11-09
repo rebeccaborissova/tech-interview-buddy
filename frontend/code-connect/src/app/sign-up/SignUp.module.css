@@ -1,0 +1,15 @@
+.scrollableForm {
+    max-height: 70vh; /* Limit height to 70% of viewport height */
+    overflow-y: scroll;
+    padding-right: 10px;
+  }
+  
+  /* Hide scrollbar */
+  .scrollableForm::-webkit-scrollbar {
+    display: none; /* For Chrome, Safari, and Opera */
+  }
+  .scrollableForm {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  
