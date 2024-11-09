@@ -22,6 +22,15 @@ type LoginResponse struct {
 	Message string
 }
 
+type SignUpParams struct{
+	Username string
+	Authorization string
+	FirstName string
+	LastName string
+	DSA bool
+	Year int
+}
+
 // Error response
 type Error struct {
 	// Error code

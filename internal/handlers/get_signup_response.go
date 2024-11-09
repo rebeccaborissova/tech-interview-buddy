@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
+func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 	// Set logging settings
 	// log.SetFormatter(&log.JSONFormatter{})
 	// log.SetOutput(os.Stdout)
@@ -19,10 +19,9 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 	var (
 		// Declare errors
 		MalformedRequestError  = errors.New("Malformed request body")
-		IncompleteRequestError = errors.New("Username or password cannot be blank")
-		UnauthorizedError      = errors.New("Invalid username or password")
+		IncompleteRequestError = errors.New("Form have empty fields.")
 
-		params = api.LoginParams{}
+		params = api.SignUpParams{}
 		err    error
 	)
 
@@ -43,11 +42,16 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	var (
-		username = params.Username
-		token    = params.Authorization
+		username   = params.Username
+		token      = params.Authorization
+		firstName  = params.FirstName
+		lastName   = params.LastName
+		takenDSA   = params.DSA
+		schoolYear = params.Year
 	)
 
-	if username == "" || token == "" {
+	// Ensure all required fields are assigned
+	if username == "" || token == "" || firstName == "" || lastName == "" || schoolYear == 0 {
 		log.Error(IncompleteRequestError)
 		api.RequestErrorHandler(writer, IncompleteRequestError)
 		return
@@ -60,31 +64,21 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	// Get account with primary key "username"
+	// Create a new account
 	usersCollection := tools.GetCollection(store.DB)
-	account := tools.EmailInDatabase(username, usersCollection)
-	if account == nil {
-		log.Error(UnauthorizedError)
-		api.RequestErrorHandler(writer, UnauthorizedError)
-		return
-	}
-
-	// Check if provided token is valid
-	isValidToken, err := tools.IsCorrectPassword(username, token, usersCollection)
+	// Change to := if you use the array of bools
+	err, _ = tools.InsertAccount(username, token, firstName, lastName, takenDSA, schoolYear, usersCollection)
 	if err != nil {
 		api.InternalErrorHandler(writer)
 		return
-	}
-	if !isValidToken {
-		log.Error(UnauthorizedError)
-		api.RequestErrorHandler(writer, UnauthorizedError)
-		return
-	}
+	}   
+
+	/// TODO: here down
 
 	var response = api.LoginResponse{
 		Code:     http.StatusOK,
 		Username: params.Username,
-		Message:  "Successfully authenticated " + params.Username,
+		Message:  "Successfully registered " + params.Username,
 	}
 
 	// Send the HTTP response
