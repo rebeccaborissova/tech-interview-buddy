@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/gofrs/uuid/v5"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -43,10 +45,15 @@ func NewPostgresStore() (*PostgresStore, error) {
 	}, nil
 }
 
-func GetCollection(db *mongo.Database) (collection *mongo.Collection) {
+func GetUserCollection(db *mongo.Database) (collection *mongo.Collection) {
 	return db.Collection("users")
 }
 
+func GetSessionCollection(db *mongo.Database) (collection *mongo.Collection){
+	return db.Collection("sessions")
+}
+
+// FUNCTIONS FOR ACCOUNTS ENDS HERE
 // Takes a user's email attempted password, and a Mongo collection
 // Returns true is the attempted password matches the stored hashed password
 // Inspired by https://www.alexedwards.net/blog/how-to-hash-and-verify-passwords-with-argon2-in-go
@@ -235,4 +242,19 @@ func ContainsLettersOnly(str string) (applies bool) {
 		}
 	}
 	return true
+}
+// FUNCTIONS FOR ACCOUNTS ENDS HERE //
+
+// SESSION HANDLING BEGINS HERE //
+
+func AddSession(sessionToken uuid.UUID, username string, expiresAt time.Time, sessions *mongo.Collection) (err error) {
+
+
+		session := NewSession(sessionToken, username, expiresAt)
+		_, err = sessions.InsertOne(context.TODO(), user)
+		if err != nil {
+			return err
+		}
+	
+	return nil
 }

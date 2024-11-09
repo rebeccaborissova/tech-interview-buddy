@@ -65,7 +65,7 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	usersCollection := tools.GetCollection(store.DB)
+	usersCollection := tools.GetUserCollection(store.DB)
 
 	// Check if user already exists
 	account := tools.EmailInDatabase(username, usersCollection)

@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"CODE_CONNECT_API/api"
 	"CODE_CONNECT_API/internal/tools"
 
 	log "github.com/sirupsen/logrus"
-	_ "github.com/gofrs/uuid/v5"
+	"github.com/gofrs/uuid/v5"
 )
 
 func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
@@ -24,6 +25,7 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		UnauthorizedError      = errors.New("Invalid username or password")
 
 		params = api.LoginParams{}
+		sessionToken uuid.UUID
 		err    error
 	)
 
@@ -62,7 +64,7 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	// Get account with primary key "username"
-	usersCollection := tools.GetCollection(store.DB)
+	usersCollection := tools.GetUserCollection(store.DB)
 	account := tools.EmailInDatabase(username, usersCollection)
 	if account == nil {
 		log.Error(UnauthorizedError)
@@ -81,6 +83,19 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		api.RequestErrorHandler(writer, UnauthorizedError)
 		return
 	}
+
+	sessionCollection := tools.GetSessionCollection(store.DB)
+
+	// Create a new session token (UUID v4)
+	sessionToken, err = uuid.NewV4()
+	if err != nil {
+		log.Error("Failed to generate UUID: %v", err)
+	}
+	// Make the session expire after 2 minutes (periodic refresh required)
+	expiresAt := time.Now().Add(120 * time.Second)
+
+	// Add the new session to the database
+	tools.AddSession(sessionToken, username, expiresAt, sessionCollection)
 
 	var response = api.LoginResponse{
 		Code:     http.StatusOK,
