@@ -3,8 +3,8 @@
 package main
 
 import (
-	"GO_PRACTICE_PROJECT/internal/handlers"
-	"GO_PRACTICE_PROJECT/internal/tools"
+	"CODE_CONNECT_API/internal/handlers"
+	"CODE_CONNECT_API/internal/tools"
 	"fmt"
 	"net/http"
 
