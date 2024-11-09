@@ -79,6 +79,9 @@ const Login = () => {
     required
     />
     </div>
+    <div style={styles.link}>
+      <a href="/register" style={styles.link}>New User? Create Account</a>
+    </div>
     {error && <p style={styles.error}>{error}</p>}
     {success && <p style={styles.success}>{success}</p>}
     <button type="submit" style={styles.button}>Login</button>
@@ -157,6 +160,12 @@ const styles = {
   success: {
     color: "green",
     margin: "10px 0",
+  },
+  link: {
+    color: "#0070f3",
+    textDecoration: "none",
+    fontSize: "14px",
+    transition: "color 0.3s",
   },
 };
 
