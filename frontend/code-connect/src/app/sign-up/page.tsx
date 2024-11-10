@@ -29,9 +29,33 @@ const SignUp = () => {
       return;
     }
 
-    console.log("Sending data:", { firstName, lastName, email, takenDSA, schoolYear, password });
+    // Convert schoolYear to a numerical value
+    let schoolYearNum = 0;
+    switch(schoolYear) {
+      case "Freshman": {
+        schoolYearNum = 1;
+        break;
+      }
+      case "Sophomore": {
+        schoolYearNum = 2;
+        break;
+      }
+      case "Junior": {
+        schoolYearNum = 3;
+        break;
+      }
+      case "Senior": {
+        schoolYearNum = 4;
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+
+    console.log("Sending data:", { firstName, lastName, email, takenDSA, schoolYearNum, password });
     try {
-      const response = await fetch("http://localhost:8000/register", {
+      const response = await fetch("http://localhost:8000/account/signup", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
@@ -41,7 +65,7 @@ const SignUp = () => {
           "LastName": lastName,
           "Username": email,
           "TakenDSA": takenDSA,
-          "SchoolYear": schoolYear,
+          "Year": schoolYearNum,
           "Authorization": password
         })
       });

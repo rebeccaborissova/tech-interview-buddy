@@ -21,7 +21,7 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 		MalformedRequestError  = errors.New("Malformed request body")
 		IncompleteRequestError = errors.New("There are empty fields")
 		UserExistsError        = errors.New("An account with this email already exists")
-
+		
 		params = api.SignUpParams{}
 		err    error
 	)
@@ -31,7 +31,7 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 	err = decoder.Decode(&params)
 
 	log.WithFields(log.Fields{
-		"Login parameters": params,
+		"Signup parameters": params,
 		"Request Header":   request.Header,
 		"Request Body":     request.Body,
 	}).Info("HTTP request received")
@@ -78,7 +78,8 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 	// Create a new account
 	err = tools.InsertAccount(username, token, firstName, lastName, takenDSA, schoolYear, usersCollection)
 	if err != nil {
-		api.InternalErrorHandler(writer)
+		log.Error(err)
+		api.RequestErrorHandler(writer, err)
 		return
 	}
 
