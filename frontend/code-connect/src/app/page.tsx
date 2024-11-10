@@ -20,7 +20,7 @@ const Login = () => {
     console.log("Sending data:", { email, password }); // debugging log to see if correct data sent to POST request
     try {
 
-      const response = await fetch("http://localhost:8000/account", {
+      const response = await fetch("http://localhost:8000/account/login", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
@@ -80,7 +80,7 @@ const Login = () => {
     />
     </div>
     <div style={styles.link}>
-      <a href="/register" style={styles.link}>New User? Create Account</a>
+      <a href="/sign-up" style={styles.link}>New User? Create Account</a>
     </div>
     {error && <p style={styles.error}>{error}</p>}
     {success && <p style={styles.success}>{success}</p>}
