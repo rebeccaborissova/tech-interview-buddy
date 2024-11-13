@@ -32,7 +32,7 @@ func NewAccount(email, password, firstName, lastName string, takenDSA bool, year
 }
 
 type Session struct {
-	Token    string
+	Token    uuid.UUID
 	Username string
 	Expires  time.Time
 }

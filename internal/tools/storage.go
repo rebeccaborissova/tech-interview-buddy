@@ -249,9 +249,8 @@ func ContainsLettersOnly(str string) (applies bool) {
 
 func AddSession(sessionToken uuid.UUID, username string, expiresAt time.Time, sessions *mongo.Collection) (err error) {
 
-
 		session := NewSession(sessionToken, username, expiresAt)
-		_, err = sessions.InsertOne(context.TODO(), user)
+		_, err = sessions.InsertOne(context.TODO(), session)
 		if err != nil {
 			return err
 		}
