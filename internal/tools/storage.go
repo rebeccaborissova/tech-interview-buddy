@@ -229,7 +229,9 @@ func EmailInDatabase(email string, user *mongo.Collection) (account *Account) {
 
 	err := user.FindOne(context.TODO(), filter).Decode(&acc)
 	if err != nil {
-		return nil
+		if err == mongo.ErrNoDocuments{
+			return nil
+		}
 	}
 
 	return &acc
@@ -243,17 +245,76 @@ func ContainsLettersOnly(str string) (applies bool) {
 	}
 	return true
 }
+
 // FUNCTIONS FOR ACCOUNTS ENDS HERE //
 
 // SESSION HANDLING BEGINS HERE //
+func AddSession(sessionToken uuid.UUID, username string, expiresAt time.Time, sessions, users *mongo.Collection) (err error) {
+	var UsernameNotFound = errors.New("Email was not found")
+	if(EmailInDatabase(username, users) == nil){
+		return UsernameNotFound
+	}
+	
+	filter := bson.D{{Key: "email", Value: username}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: true}}}}
 
-func AddSession(sessionToken uuid.UUID, username string, expiresAt time.Time, sessions *mongo.Collection) (err error) {
-
-		session := NewSession(sessionToken, username, expiresAt)
-		_, err = sessions.InsertOne(context.TODO(), session)
-		if err != nil {
-			return err
+	_, err = users.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		if err == mongo.ErrNoDocuments{
+			return nil
 		}
+	}
+
+	session := NewSession(sessionToken, username, expiresAt)
+	_, err = sessions.InsertOne(context.TODO(), session)
+	if err != nil {
+		return err
+	}
 	
 	return nil
 }
+
+func CheckSession(token Session, sessions, users *mongo.Collection)(err error){
+	var TokenNotFound = errors.New("Token not found.")
+	var UserNotFound = errors.New("User for token not found.")
+	var TokenExpired = errors.New("Session expired.")
+
+	var sesh Session
+	filter := bson.M{"username": token.Username}
+
+	err = sessions.FindOne(context.TODO(), filter).Decode(&sesh)
+	if err != nil {
+		if err == mongo.ErrNoDocuments{
+			return TokenNotFound
+		}
+	}
+
+	if(sesh.isExpired()){
+		DeleteSession(token, sessions)
+		if(EmailInDatabase(token.Username, users) == nil){
+			return UserNotFound
+		}
+		filter := bson.D{{Key: "email", Value: token.Username}}
+		update := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: false}}}}
+
+		_, err = users.UpdateOne(context.TODO(), filter, update)
+		if err != nil {
+			if err == mongo.ErrNoDocuments{
+				return nil
+			}
+		}
+		return TokenExpired
+	}
+	return nil
+}
+
+// Assumes that session exists in the database.
+func DeleteSession(token Session, sessions *mongo.Collection) (err error){
+	filter := bson.D{{Key: "username", Value: token.Username}}
+
+	result, err := sessions.DeleteOne(context.TODO(), filter)
+	fmt.Printf("Number of documents deleted: %d\n", result.DeletedCount)
+	return err
+}
+
+// SESSION HANDLING ENDS HERE //

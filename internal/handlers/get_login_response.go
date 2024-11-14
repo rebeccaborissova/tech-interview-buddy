@@ -91,17 +91,24 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		log.Error("Failed to generate UUID: %v", err)
 	}
-	// Make the session expire after 2 minutes (periodic refresh required)
-	expiresAt := time.Now().Add(120 * time.Second)
+	// Make the session expire after 10 minutes (periodic refresh required)
+	expiresAt := time.Now().Add(600 * time.Second)
 
 	// Add the new session to the database
-	tools.AddSession(sessionToken, username, expiresAt, sessionCollection)
+	tools.AddSession(sessionToken, username, expiresAt, sessionCollection, usersCollection)
 
 	var response = api.LoginResponse{
 		Code:     http.StatusOK,
-		Username: params.Username,
+		Session:  sessionToken.String(),
 		Message:  "Successfully authenticated " + params.Username,
 	}
+
+	// Set the client cookie
+	http.SetCookie(writer, &http.Cookie{
+		Name: "session_token",
+		Value: sessionToken.String(),
+		Expires: expiresAt,
+	})
 
 	// Send the HTTP response
 	err = json.NewEncoder(writer).Encode(response)

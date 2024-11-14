@@ -17,7 +17,7 @@ type LoginResponse struct {
 	// Success code
 	Code int
 
-	Username string
+	Session string
 
 	Message string
 }
