@@ -9,8 +9,8 @@ import (
 	"CODE_CONNECT_API/api"
 	"CODE_CONNECT_API/internal/tools"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/gofrs/uuid/v5"
+	log "github.com/sirupsen/logrus"
 )
 
 func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
@@ -24,9 +24,9 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		IncompleteRequestError = errors.New("Username or password cannot be blank")
 		UnauthorizedError      = errors.New("Invalid username or password")
 
-		params = api.LoginParams{}
+		params       = api.LoginParams{}
 		sessionToken uuid.UUID
-		err    error
+		err          error
 	)
 
 	// Decode HTTP request body into params struct
@@ -98,15 +98,15 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 	tools.AddSession(sessionToken, username, expiresAt, sessionCollection, usersCollection)
 
 	var response = api.LoginResponse{
-		Code:     http.StatusOK,
-		Session:  sessionToken.String(),
-		Message:  "Successfully authenticated " + params.Username,
+		Code:    http.StatusOK,
+		Session: sessionToken.String(),
+		Message: "Successfully authenticated " + params.Username,
 	}
 
 	// Set the client cookie
 	http.SetCookie(writer, &http.Cookie{
-		Name: "session_token",
-		Value: sessionToken.String(),
+		Name:    "session_token",
+		Value:   sessionToken.String(),
 		Expires: expiresAt,
 	})
 

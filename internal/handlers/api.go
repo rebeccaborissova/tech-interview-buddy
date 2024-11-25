@@ -18,5 +18,6 @@ func Handler(router *chi.Mux) {
 
 		router.Post("/login", getLoginReponse)
 		router.Post("/signup", getSignUpReponse)
+		router.Post("/logout", logout)
 	})
 }

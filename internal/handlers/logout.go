@@ -2,12 +2,15 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"CODE_CONNECT_API/api"
 	"CODE_CONNECT_API/internal/tools"
+
+	"github.com/gofrs/uuid/v5"
 )
 
-func Logout(writer http.ResponseWriter, request *http.Request) {
+func logout(writer http.ResponseWriter, request *http.Request) {
 	// Get the cookie from the HTTP request
 	cookie, err := request.Cookie("session_token")
 	if err != nil {
@@ -28,12 +31,18 @@ func Logout(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	sessionCollection := tools.GetSessionCollection(store.DB)
-	DeleteSession(/* TODO: add session struct*/, sessionCollection)
-	
-	// TODO set cookie to blank
-	// http.SetCookie(w, &http.Cookie{
-	// 	Name:    "session_token",
-	// 	Value:   "",
-	// 	Expires: time.Now(),
-	// })
-}	
+
+	sessionUUID, err := uuid.FromString(sessionToken)
+	if err != nil {
+		api.InternalErrorHandler(writer)
+		return
+	}
+	userSession := tools.GetSession(sessionUUID, sessionCollection)
+
+	tools.DeleteSession(userSession, sessionCollection)
+	http.SetCookie(writer, &http.Cookie{
+		Name:    "session_token",
+		Value:   "",
+		Expires: time.Now(),
+	})
+}

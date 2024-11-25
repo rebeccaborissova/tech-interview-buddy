@@ -49,7 +49,7 @@ func GetUserCollection(db *mongo.Database) (collection *mongo.Collection) {
 	return db.Collection("users")
 }
 
-func GetSessionCollection(db *mongo.Database) (collection *mongo.Collection){
+func GetSessionCollection(db *mongo.Database) (collection *mongo.Collection) {
 	return db.Collection("sessions")
 }
 
@@ -116,7 +116,7 @@ func InsertAccount(email, password, first, last string, dsa bool, year int, user
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -229,7 +229,7 @@ func EmailInDatabase(email string, user *mongo.Collection) (account *Account) {
 
 	err := user.FindOne(context.TODO(), filter).Decode(&acc)
 	if err != nil {
-		if err == mongo.ErrNoDocuments{
+		if err == mongo.ErrNoDocuments {
 			return nil
 		}
 	}
@@ -246,21 +246,32 @@ func ContainsLettersOnly(str string) (applies bool) {
 	return true
 }
 
+func GetOnlineAccounts(user *mongo.Collection) (accounts []Account, err error) {
+	filter := bson.D{{Key: "online", Value: true}}
+
+	cursor, err := user.Find(context.TODO(), filter)
+
+	var results []Account
+	err = cursor.All(context.TODO(), &results)
+
+	return results, err
+}
+
 // FUNCTIONS FOR ACCOUNTS ENDS HERE //
 
 // SESSION HANDLING BEGINS HERE //
 func AddSession(sessionToken uuid.UUID, username string, expiresAt time.Time, sessions, users *mongo.Collection) (err error) {
 	var UsernameNotFound = errors.New("Email was not found")
-	if(EmailInDatabase(username, users) == nil){
+	if EmailInDatabase(username, users) == nil {
 		return UsernameNotFound
 	}
-	
+
 	filter := bson.D{{Key: "email", Value: username}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: true}}}}
 
 	_, err = users.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments{
+		if err == mongo.ErrNoDocuments {
 			return nil
 		}
 	}
@@ -270,11 +281,11 @@ func AddSession(sessionToken uuid.UUID, username string, expiresAt time.Time, se
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
-func CheckSession(token Session, sessions, users *mongo.Collection)(err error){
+func CheckSession(token Session, sessions, users *mongo.Collection) (err error) {
 	var TokenNotFound = errors.New("Token not found.")
 	var UserNotFound = errors.New("User for token not found.")
 	var TokenExpired = errors.New("Session expired.")
@@ -284,14 +295,14 @@ func CheckSession(token Session, sessions, users *mongo.Collection)(err error){
 
 	err = sessions.FindOne(context.TODO(), filter).Decode(&sesh)
 	if err != nil {
-		if err == mongo.ErrNoDocuments{
+		if err == mongo.ErrNoDocuments {
 			return TokenNotFound
 		}
 	}
 
-	if(sesh.isExpired()){
+	if sesh.isExpired() {
 		DeleteSession(token, sessions)
-		if(EmailInDatabase(token.Username, users) == nil){
+		if EmailInDatabase(token.Username, users) == nil {
 			return UserNotFound
 		}
 		filter := bson.D{{Key: "email", Value: token.Username}}
@@ -299,7 +310,7 @@ func CheckSession(token Session, sessions, users *mongo.Collection)(err error){
 
 		_, err = users.UpdateOne(context.TODO(), filter, update)
 		if err != nil {
-			if err == mongo.ErrNoDocuments{
+			if err == mongo.ErrNoDocuments {
 				return nil
 			}
 		}
@@ -309,12 +320,34 @@ func CheckSession(token Session, sessions, users *mongo.Collection)(err error){
 }
 
 // Assumes that session exists in the database.
-func DeleteSession(token Session, sessions *mongo.Collection) (err error){
+func DeleteSession(token Session, sessions *mongo.Collection) (err error) {
+	var TokenNotFound = errors.New("Token not found.")
 	filter := bson.D{{Key: "username", Value: token.Username}}
 
-	result, err := sessions.DeleteOne(context.TODO(), filter)
-	fmt.Printf("Number of documents deleted: %d\n", result.DeletedCount)
+	sessionFilter := bson.D{{Key: "email", Value: token.Username}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: false}}}}
+
+	_, err = sessions.UpdateOne(context.TODO(), sessionFilter, update)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return TokenNotFound
+		}
+	}
+
+	_, err = sessions.DeleteOne(context.TODO(), filter)
 	return err
+}
+
+func GetSession(uuid uuid.UUID, sessions *mongo.Collection) (session Session) {
+	var sesh Session
+	filter := bson.D{{Key: "token", Value: uuid}}
+
+	err := sessions.FindOne(context.TODO(), filter).Decode(&sesh)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return sesh
 }
 
 // SESSION HANDLING ENDS HERE //
