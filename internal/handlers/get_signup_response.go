@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 
-	"GO_PRACTICE_PROJECT/api"
-	"GO_PRACTICE_PROJECT/internal/tools"
+	"CODE_CONNECT_API/api"
+	"CODE_CONNECT_API/internal/tools"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -65,7 +65,7 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	usersCollection := tools.GetCollection(store.DB)
+	usersCollection := tools.GetUserCollection(store.DB)
 
 	// Check if user already exists
 	account := tools.EmailInDatabase(username, usersCollection)
