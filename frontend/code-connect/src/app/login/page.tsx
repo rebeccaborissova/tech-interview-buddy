@@ -35,11 +35,12 @@ const Login = () => {
       const result = await response.json();
       if (response.ok) {
         setError(" ")
-        if (result.Username) {
+        if (result.Session) {
           setSuccess("Username and password correct. This user exists in the database.");
           setTimeout(() => router.push("/dashboard"), 2000); // redirect after 2 seconds
         } else {
-          setError("Incorrect password. Please try again.");
+          // Display error message from backend
+          setError(result.Message)
         }
       } else {
         // Display error message from backend
