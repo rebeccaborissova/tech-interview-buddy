@@ -1,0 +1,172 @@
+/* General Layout */
+.container {
+    display: flex;
+    height: 100vh;
+    background: #f3f4f6;
+  }
+  
+  /* Left Panel */
+  .leftPanel {
+    width: 250px;
+    background: #0070f3;
+    color: #fff;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .panelTitle {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .userList {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .userListItem {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .userListItem:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Main Content */
+  .mainContent {
+    flex: 1;
+    padding: 40px;
+    text-align: center;
+    overflow-y: auto;
+  }
+  
+  .instructionsTitle {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .instructionsText {
+    margin-bottom: 20px;
+  }
+  
+  .instructionsList {
+    text-align: left;
+    margin: 0 auto 20px;
+    max-width: 600px;
+  }
+  
+  .button {
+    padding: 12px;
+    background-color: #0070f3;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+  }
+  
+  .button:hover {
+    background-color: #005bb5;
+  }
+  
+  /* Profile Bar */
+  .profileBar {
+    width: 50px;
+    background: #fff;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    cursor: pointer;
+    transition: width 0.3s ease;
+  }
+  
+  .profileBarExpanded {
+    width: 200px;
+    padding: 20px;
+  }
+  
+  .profileIcon {
+    font-size: 24px;
+  }
+  
+  .profileContent {
+    text-align: left;
+  }
+  
+  .profileContentTitle {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .profileContentText {
+    font-size: 14px;
+  }
+  
+  /* Popup Modal */
+  .popupOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .popup {
+    width: 400px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+  }
+  
+  .popupTitle {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .popupUserList {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 10px;
+  }
+  
+  .popupUserListItem {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+    transition: background 0.3s;
+  }
+  
+  .popupUserListItem:hover {
+    background: #f3f4f6;
+  }
+  
+  .popupCloseButton {
+    padding: 10px;
+    background-color: #0070f3;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .popupCloseButton:hover {
+    background-color: #005bb5;
+  }
+  
