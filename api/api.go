@@ -30,6 +30,7 @@ type SignUpParams struct {
 	LastName string
 	DSA bool
 	Year int
+	Description string
 }
 
 // Sign-Up reponse

@@ -49,6 +49,7 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 		lastName   = params.LastName
 		takenDSA   = params.DSA
 		schoolYear = params.Year
+		description = params.Description
 	)
 
 	// Ensure all required fields are assigned
@@ -76,7 +77,7 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	// Create a new account
-	err = tools.InsertAccount(username, token, firstName, lastName, takenDSA, schoolYear, usersCollection)
+	err = tools.InsertAccount(username, token, firstName, lastName, description, takenDSA, schoolYear, usersCollection)
 	if err != nil {
 		log.Error(err)
 		api.RequestErrorHandler(writer, err)

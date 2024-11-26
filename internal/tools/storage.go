@@ -92,7 +92,7 @@ func DeleteAccount(email string, user *mongo.Collection) (err error) {
 }
 
 // Takes a new account created and inserts it into the collection of users.
-func InsertAccount(email, password, first, last string, dsa bool, year int, users *mongo.Collection) (err error) {
+func InsertAccount(email, password, first, last, des string, dsa bool, year int, users *mongo.Collection) (err error) {
 	validation := ValidateAccount(email, password, first, last, users)
 
 	// TODO: Return the println statements as error types instead.
@@ -110,7 +110,7 @@ func InsertAccount(email, password, first, last string, dsa bool, year int, user
 
 		// Make password encryption here.
 		password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
-		user := NewAccount(email, password, first, last, dsa, year)
+		user := NewAccount(email, password, first, last, dsa, year, des)
 		_, err := users.InsertOne(context.TODO(), user)
 		if err != nil {
 			return err
@@ -249,7 +249,7 @@ func ContainsLettersOnly(str string) (applies bool) {
 func GetOnlineAccounts(user *mongo.Collection) (accounts []Account, err error) {
 	filter := bson.D{{Key: "online", Value: true}}
 
-	cursor, err := user.Find(context.TODO(), filter)
+	cursor, _ := user.Find(context.TODO(), filter)
 
 	var results []Account
 	err = cursor.All(context.TODO(), &results)

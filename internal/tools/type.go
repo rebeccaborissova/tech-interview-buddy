@@ -15,9 +15,11 @@ type Account struct {
 
 	Year   int
 	Online bool
+
+	Description string
 }
 
-func NewAccount(email, password, firstName, lastName string, takenDSA bool, year int) *Account {
+func NewAccount(email, password, firstName, lastName string, takenDSA bool, year int, des string) *Account {
 	return &Account{
 		Email:     email,
 		Password:  password,
@@ -28,6 +30,8 @@ func NewAccount(email, password, firstName, lastName string, takenDSA bool, year
 
 		Year:   year,
 		Online: true,
+
+		Description: des,
 	}
 }
 
