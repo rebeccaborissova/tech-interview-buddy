@@ -1,8 +1,8 @@
 const routes = {
     home: "/",
-    login: "/pages/login/page.tsx",
-    signUp: "/pages/sign-up/page.tsx",
-    videoCall: "/pages/video-call/page.tsx",
+    login: "/login/page.tsx",
+    signUp: "/sign-up/page.tsx",
+    videoCall: "/video-call/page.tsx",
   };
   
   export default routes;
