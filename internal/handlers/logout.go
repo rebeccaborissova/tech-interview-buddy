@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -8,6 +9,7 @@ import (
 	"CODE_CONNECT_API/internal/tools"
 
 	"github.com/gofrs/uuid/v5"
+	log "github.com/sirupsen/logrus"
 )
 
 func logout(writer http.ResponseWriter, request *http.Request) {
@@ -39,10 +41,26 @@ func logout(writer http.ResponseWriter, request *http.Request) {
 	}
 	userSession := tools.GetSession(sessionUUID, sessionCollection)
 
+	// Remove the session from the database
 	tools.DeleteSession(userSession, sessionCollection)
+
+	var response = api.LogoutResponse{
+		Code:    http.StatusOK,
+		Message: "Successfully logged out",
+	}
+
+	// Set the client cookie
 	http.SetCookie(writer, &http.Cookie{
 		Name:    "session_token",
 		Value:   "",
 		Expires: time.Now(),
 	})
+
+	// Send the HTTP response
+	err = json.NewEncoder(writer).Encode(response)
+	if err != nil {
+		log.Error(err)
+		api.InternalErrorHandler(writer)
+		return
+	}
 }

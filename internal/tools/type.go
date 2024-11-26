@@ -45,6 +45,6 @@ func NewSession(token uuid.UUID, user string, expires time.Time) *Session{
 	}
 }
 
-func (s Session) isExpired() bool {
+func (s Session) IsExpired() bool {
 	return s.Expires.Before(time.Now())
 }
