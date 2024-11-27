@@ -183,6 +183,14 @@ func UpdateLastName(email, lastname string, users *mongo.Collection) (err error)
 	}
 }
 
+func UpdateDescription(email, description string, users *mongo.Collection) (err error){
+	filter := bson.D{{Key: "email", Value: email}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "Description", Value: description}}}}
+
+	_, err = users.UpdateOne(context.TODO(), filter, update)
+	return err
+}
+
 // ^ ALL THE UPDATE FUNCTIONS FOR EACH OF THE FIELDS BESIDES EMAIL ^
 
 // Ensures that attributes are valid. The following are the requirements:
