@@ -19,6 +19,17 @@ func Handler(router *chi.Mux) {
 		router.Post("/login", getLoginReponse)
 		router.Post("/signup", getSignUpReponse)
 		router.Post("/logout", logout)
-		router.Post("/refresh", refreshSession)
+		//router.Post("/refresh", refreshSession)
+	})
+
+	router.Route("/app", func(router chi.Router) {
+		// Middleware for /app route
+		router.Use(middleware.RefreshSession)
+
+		// TODO VVVV
+		// Get list of active users with relevant info
+		// Get info for current user
+		// Update user account info
+		// Delete user account info
 	})
 }
