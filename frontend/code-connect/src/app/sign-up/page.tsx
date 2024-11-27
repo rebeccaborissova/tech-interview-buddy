@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import styles from "./SignUp.module.css"; // Import the CSS module for hidden scrollbar
+import styles from "./SignUp.module.css"; // imports CSS module for hidden scrollbar
 
 const SignUp = () => {
   const router = useRouter();
@@ -13,13 +13,14 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [takenDSA, setTakenDSA] = useState<boolean>(false);
   const [schoolYear, setSchoolYear] = useState<string>("");
+  const [description, setDescription] = useState<string>(""); 
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim() || !description.trim()) {
       setError("Please fill out all fields.");
       return;
     }
@@ -29,9 +30,9 @@ const SignUp = () => {
       return;
     }
 
-    // Convert schoolYear to a numerical value
+    // convert schoolYear to a numerical value
     let schoolYearNum = 0;
-    switch(schoolYear) {
+    switch (schoolYear) {
       case "Freshman": {
         schoolYearNum = 1;
         break;
@@ -53,7 +54,7 @@ const SignUp = () => {
       }
     }
 
-    console.log("Sending data:", { firstName, lastName, email, takenDSA, schoolYearNum, password });
+    console.log("Sending data:", { firstName, lastName, email, takenDSA, schoolYearNum, description, password });
     try {
       const response = await fetch("http://localhost:8000/account/signup", {
         method: "POST",
@@ -66,6 +67,7 @@ const SignUp = () => {
           "Username": email,
           "TakenDSA": takenDSA,
           "Year": schoolYearNum,
+          "Description": description, 
           "Authorization": password
         })
       });
@@ -150,6 +152,17 @@ const SignUp = () => {
               </select>
             </div>
             <div style={inlineStyles.inputContainer}>
+              <label htmlFor="description" style={inlineStyles.label}>Description</label>
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                style={inlineStyles.textarea}
+                placeholder="Write a short description about your programming experience and knowledge"
+                required
+              />
+            </div>
+            <div style={inlineStyles.inputContainer}>
               <label htmlFor="password" style={inlineStyles.label}>Password</label>
               <input
                 type="password"
@@ -232,6 +245,16 @@ const inlineStyles = {
     fontSize: "16px",
     color: "#000",
   },
+  textarea: {
+    width: "100%",
+    height: "80px",
+    padding: "12px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    fontSize: "16px",
+    resize: "none" as "none",
+    color: "#000",
+  },
   checkbox: {
     width: "20px",
     height: "20px",
@@ -264,3 +287,4 @@ const inlineStyles = {
 };
 
 export default SignUp;
+

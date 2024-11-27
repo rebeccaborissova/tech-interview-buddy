@@ -1,173 +1,93 @@
+// default root page: home page
+
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Navbar from "../utils/navbar";
 
-const Login = () => {
-  const router = useRouter();
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
-  const [success, setSuccess] = useState<string>("");
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!email.trim() || !password.trim() ) {
-      setError("Please enter your email and password.");
-      return;
-    }
-    console.log("Sending data:", { email, password }); // debugging log to see if correct data sent to POST request
-    try {
-
-      const response = await fetch("http://localhost:8000/account/login", {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          "Username": email,
-          "Authorization": password
-        })
-      });
-
-      console.log(response);
-      const result = await response.json();
-      if (response.ok) {
-        setError(" ")
-        if (result.Username) {
-          setSuccess("Username and password correct. This user exists in the database.");
-          setTimeout(() => router.push("/dashboard"), 2000); // redirect after 2 seconds
-        } else {
-          setError("Incorrect password. Please try again.");
-        }
-      } else {
-        // Display error message from backend
-        setError(result.Message)
-        // setError("Network request failed. 400 error.");
-      }
-    } catch (err) {
-      console.error("Network request failed:", err); // error log
-      setError("Network response error.");
-    }
-  };
-
+const HomePage = () => {
   return (
-    <div style={styles.container}>
-    <div style={styles.formContainer}>
-    <h1 style={styles.title}>CodeConnect</h1>
-    <form onSubmit={handleLogin} style={styles.form}>
-    <div style={styles.inputContainer}>
-    <label htmlFor="email" style={styles.label}>Email</label>
-    <input
-    type="email"
-    id="email"
-    value={email}
-    onChange={(e) => setEmail(e.target.value)}
-    style={styles.input}
-    required
-    />
-    </div>
-    <div style={styles.inputContainer}>
-    <label htmlFor="password" style={styles.label}>Password</label>
-    <input
-    type="password"
-    id="password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-    style={styles.input}
-    required
-    />
-    </div>
-    <div style={styles.link}>
-      <a href="/sign-up" style={styles.link}>New User? Create Account</a>
-    </div>
-    {error && <p style={styles.error}>{error}</p>}
-    {success && <p style={styles.success}>{success}</p>}
-    <button type="submit" style={styles.button}>Login</button>
-    </form>
-    </div>
+    <div>
+      <Navbar />
+      <div style={styles.container}>
+        <div style={styles.leftSection}>
+          <h1 style={styles.title}>Welcome to CodeConnect!</h1>
+          <p style={styles.subtitle}>
+            Connecting Gator developers through learning and practice.
+          </p>
+        </div>
+        <div style={styles.rightSection}>
+          <div style={styles.textBox}>
+            <h2 style={styles.textBoxTitle}>About CodeConnect</h2>
+            <p style={styles.textBoxContent}>
+              CodeConnect is the go-to platform for mastering technical coding
+              interviews. Sharpen your skills in data structures and algorithms
+              with curated LeetCode and Hackerrank-style challenges. Pair up
+              with a fellow Gator and get ready to ace your dream software role!
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-// inline styles for simplicity
 const styles = {
   container: {
     display: "flex",
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "center",
     height: "100vh",
     background: "linear-gradient(to right, #6a11cb, #2575fc)",
+    padding: "2rem",
+    color: "white",
   },
-  formContainer: {
-    maxWidth: "400px",
-    width: "100%",
-    padding: "30px",
-    textAlign: "center" as "center",
-    border: "1px solid #ccc",
-    borderRadius: "12px",
-    backgroundColor: "#fff",
-    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
-  },
-  title: {
-    margin: "0 0 20px 0",
-    fontSize: "28px",
-    fontWeight: "bold" as "bold",
-    color: "#333",
-  },
-  form: {
+  leftSection: {
+    flex: 1.3, // Slightly wider to extend text towards the right
     display: "flex",
     flexDirection: "column" as "column",
-  },
-  inputContainer: {
-    margin: "15px 0",
-  },
-  label: {
-    display: "block",
-    marginBottom: "5px",
-    fontSize: "14px",
-    fontWeight: "600",
-    color: "#444",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    padding: "2rem",
     textAlign: "left" as "left",
   },
-  input: {
-    width: "100%",
-    padding: "12px",
-    borderRadius: "8px",
-    border: "1px solid #ccc",
-    fontSize: "16px",
-    color: "#000",
+  title: {
+    fontSize: "4rem",
+    fontWeight: "bold" as "bold",
+    marginBottom: "1rem",
+    lineHeight: "1.2",
   },
-  button: {
-    padding: "12px",
-    backgroundColor: "#0070f3",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "16px",
-    transition: "background 0.3s",
-    marginTop: "10px",
+  subtitle: {
+    fontSize: "1.8rem",
+    marginTop: "0.5rem",
+    lineHeight: "1.5",
+    maxWidth: "90%", // Extended width for subtitle
   },
-  buttonHover: {
-    backgroundColor: "#005bb5",
+  rightSection: {
+    flex: 1,
+    display: "flex",
+    justifyContent: "center" as "center",
+    alignItems: "center" as "center",
+    padding: "2rem",
   },
-  error: {
-    color: "red",
-    margin: "10px 0",
+  textBox: {
+    background: "white",
+    borderRadius: "12px",
+    padding: "3rem",
+    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.6)", // Enhanced shadow for contrast
+    color: "#333",
+    maxWidth: "500px",
+    textAlign: "center" as "center",
   },
-  success: {
-    color: "green",
-    margin: "10px 0",
+  textBoxTitle: {
+    fontSize: "2.2rem",
+    fontWeight: "bold" as "bold",
+    marginBottom: "1.5rem",
+    color: "#6a11cb",
   },
-  link: {
-    color: "#0070f3",
-    textDecoration: "none",
-    fontSize: "14px",
-    transition: "color 0.3s",
+  textBoxContent: {
+    fontSize: "1.4rem",
+    lineHeight: "1.8",
   },
 };
 
-export default Login;
-
+export default HomePage;

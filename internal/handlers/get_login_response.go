@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
-	"GO_PRACTICE_PROJECT/api"
-	"GO_PRACTICE_PROJECT/internal/tools"
+	"CODE_CONNECT_API/api"
+	"CODE_CONNECT_API/internal/tools"
 
+	"github.com/gofrs/uuid/v5"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -22,8 +24,9 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		IncompleteRequestError = errors.New("Username or password cannot be blank")
 		UnauthorizedError      = errors.New("Invalid username or password")
 
-		params = api.LoginParams{}
-		err    error
+		params       = api.LoginParams{}
+		sessionToken uuid.UUID
+		err          error
 	)
 
 	// Decode HTTP request body into params struct
@@ -61,7 +64,7 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	// Get account with primary key "username"
-	usersCollection := tools.GetCollection(store.DB)
+	usersCollection := tools.GetUserCollection(store.DB)
 	account := tools.EmailInDatabase(username, usersCollection)
 	if account == nil {
 		log.Error(UnauthorizedError)
@@ -81,11 +84,31 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var response = api.LoginResponse{
-		Code:     http.StatusOK,
-		Username: params.Username,
-		Message:  "Successfully authenticated " + params.Username,
+	sessionCollection := tools.GetSessionCollection(store.DB)
+
+	// Create a new session token (UUID v4)
+	sessionToken, err = uuid.NewV4()
+	if err != nil {
+		log.Error("Failed to generate UUID: %v", err)
 	}
+	// Make the session expire after 10 minutes (periodic refresh required)
+	expiresAt := time.Now().Add(600 * time.Second)
+
+	// Add the new session to the database
+	tools.AddSession(sessionToken, username, expiresAt, sessionCollection, usersCollection)
+
+	var response = api.LoginResponse{
+		Code:    http.StatusOK,
+		Session: sessionToken.String(),
+		Message: "Successfully authenticated " + params.Username,
+	}
+
+	// Set the client cookie
+	http.SetCookie(writer, &http.Cookie{
+		Name:    "session_token",
+		Value:   sessionToken.String(),
+		Expires: expiresAt,
+	})
 
 	// Send the HTTP response
 	err = json.NewEncoder(writer).Encode(response)

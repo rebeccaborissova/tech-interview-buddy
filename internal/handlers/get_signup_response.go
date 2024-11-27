@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 
-	"GO_PRACTICE_PROJECT/api"
-	"GO_PRACTICE_PROJECT/internal/tools"
+	"CODE_CONNECT_API/api"
+	"CODE_CONNECT_API/internal/tools"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -49,6 +49,7 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 		lastName   = params.LastName
 		takenDSA   = params.DSA
 		schoolYear = params.Year
+		description = params.Description
 	)
 
 	// Ensure all required fields are assigned
@@ -65,7 +66,7 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	usersCollection := tools.GetCollection(store.DB)
+	usersCollection := tools.GetUserCollection(store.DB)
 
 	// Check if user already exists
 	account := tools.EmailInDatabase(username, usersCollection)
@@ -76,7 +77,7 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	// Create a new account
-	err = tools.InsertAccount(username, token, firstName, lastName, takenDSA, schoolYear, usersCollection)
+	err = tools.InsertAccount(username, token, firstName, lastName, description, takenDSA, schoolYear, usersCollection)
 	if err != nil {
 		log.Error(err)
 		api.RequestErrorHandler(writer, err)

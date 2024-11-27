@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"GO_PRACTICE_PROJECT/internal/middleware"
+	"CODE_CONNECT_API/internal/middleware"
 
 	"github.com/go-chi/chi"
 	chimiddle "github.com/go-chi/chi/middleware"
@@ -18,5 +18,7 @@ func Handler(router *chi.Mux) {
 
 		router.Post("/login", getLoginReponse)
 		router.Post("/signup", getSignUpReponse)
+		router.Post("/logout", logout)
+		router.Post("/refresh", refreshSession)
 	})
 }

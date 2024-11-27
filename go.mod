@@ -1,4 +1,4 @@
-module GO_PRACTICE_PROJECT
+module CODE_CONNECT_API
 
 go 1.23.1
 
@@ -15,6 +15,7 @@ require (
 
 require (
 	github.com/alexedwards/argon2id v1.0.0
+	github.com/gofrs/uuid/v5 v5.3.0
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect

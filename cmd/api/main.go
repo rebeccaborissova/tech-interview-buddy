@@ -3,8 +3,8 @@
 package main
 
 import (
-	"GO_PRACTICE_PROJECT/internal/handlers"
-	"GO_PRACTICE_PROJECT/internal/tools"
+	"CODE_CONNECT_API/internal/handlers"
+	"CODE_CONNECT_API/internal/tools"
 	"fmt"
 	"net/http"
 
@@ -29,11 +29,12 @@ func main() {
 	lastName := "Tran"
 	tookDSA := true
 	classYear := 2
+	description := "I'm really terrible at DP and Graphs. Really good at Linked Lists."
 
 	// CREATE OPERATION
 	// TODO: Should I try to make it return an error and like how should I let front-end know what information given was invalid?
 	// TEMPORARILY: Use a string
-	tools.InsertAccount(email, password, firstName, lastName, tookDSA, classYear, usersCollection)
+	tools.InsertAccount(email, password, firstName, lastName, description, tookDSA, classYear, usersCollection)
 	// CREATE OPERATION
 
 	fmt.Println()
@@ -58,8 +59,9 @@ func main() {
 	lastName = "Meow"
 	tookDSA = false
 	classYear = 1
+	description = "Meow Meow Meow!"
 
-	tools.InsertAccount(email, password, firstName, lastName, tookDSA, classYear, usersCollection)
+	tools.InsertAccount(email, password, firstName, lastName, description, tookDSA, classYear, usersCollection)
 	deleteErr := tools.DeleteAccount(email, usersCollection)
 	if deleteErr != nil {
 		log.Fatal(deleteErr)
@@ -74,7 +76,7 @@ func main() {
 	tookDSA = false
 	classYear = 3
 
-	tools.InsertAccount(email, password, firstName, lastName, tookDSA, classYear, usersCollection)
+	tools.InsertAccount(email, password, firstName, lastName, description, tookDSA, classYear, usersCollection)
 	password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
 	fmt.Println(password)
 

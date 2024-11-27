@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/gofrs/uuid/v5"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -43,10 +45,15 @@ func NewPostgresStore() (*PostgresStore, error) {
 	}, nil
 }
 
-func GetCollection(db *mongo.Database) (collection *mongo.Collection) {
+func GetUserCollection(db *mongo.Database) (collection *mongo.Collection) {
 	return db.Collection("users")
 }
 
+func GetSessionCollection(db *mongo.Database) (collection *mongo.Collection) {
+	return db.Collection("sessions")
+}
+
+// FUNCTIONS FOR ACCOUNTS ENDS HERE
 // Takes a user's email attempted password, and a Mongo collection
 // Returns true is the attempted password matches the stored hashed password
 // Inspired by https://www.alexedwards.net/blog/how-to-hash-and-verify-passwords-with-argon2-in-go
@@ -85,7 +92,7 @@ func DeleteAccount(email string, user *mongo.Collection) (err error) {
 }
 
 // Takes a new account created and inserts it into the collection of users.
-func InsertAccount(email, password, first, last string, dsa bool, year int, users *mongo.Collection) (err error) {
+func InsertAccount(email, password, first, last, des string, dsa bool, year int, users *mongo.Collection) (err error) {
 	validation := ValidateAccount(email, password, first, last, users)
 
 	// TODO: Return the println statements as error types instead.
@@ -103,13 +110,13 @@ func InsertAccount(email, password, first, last string, dsa bool, year int, user
 
 		// Make password encryption here.
 		password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
-		user := NewAccount(email, password, first, last, dsa, year)
+		user := NewAccount(email, password, first, last, dsa, year, des)
 		_, err := users.InsertOne(context.TODO(), user)
 		if err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -176,6 +183,14 @@ func UpdateLastName(email, lastname string, users *mongo.Collection) (err error)
 	}
 }
 
+func UpdateDescription(email, description string, users *mongo.Collection) (err error){
+	filter := bson.D{{Key: "email", Value: email}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "Description", Value: description}}}}
+
+	_, err = users.UpdateOne(context.TODO(), filter, update)
+	return err
+}
+
 // ^ ALL THE UPDATE FUNCTIONS FOR EACH OF THE FIELDS BESIDES EMAIL ^
 
 // Ensures that attributes are valid. The following are the requirements:
@@ -222,7 +237,9 @@ func EmailInDatabase(email string, user *mongo.Collection) (account *Account) {
 
 	err := user.FindOne(context.TODO(), filter).Decode(&acc)
 	if err != nil {
-		return nil
+		if err == mongo.ErrNoDocuments {
+			return nil
+		}
 	}
 
 	return &acc
@@ -236,3 +253,109 @@ func ContainsLettersOnly(str string) (applies bool) {
 	}
 	return true
 }
+
+func GetOnlineAccounts(user *mongo.Collection) (accounts []Account, err error) {
+	filter := bson.D{{Key: "online", Value: true}}
+
+	cursor, _ := user.Find(context.TODO(), filter)
+
+	var results []Account
+	err = cursor.All(context.TODO(), &results)
+
+	return results, err
+}
+
+// FUNCTIONS FOR ACCOUNTS ENDS HERE //
+
+// SESSION HANDLING BEGINS HERE //
+func AddSession(sessionToken uuid.UUID, username string, expiresAt time.Time, sessions, users *mongo.Collection) (err error) {
+	var UsernameNotFound = errors.New("Email was not found")
+	if EmailInDatabase(username, users) == nil {
+		return UsernameNotFound
+	}
+
+	filter := bson.D{{Key: "email", Value: username}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: true}}}}
+
+	_, err = users.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil
+		}
+	}
+
+	session := NewSession(sessionToken, username, expiresAt)
+	_, err = sessions.InsertOne(context.TODO(), session)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CheckSession(token Session, sessions, users *mongo.Collection) (err error) {
+	var TokenNotFound = errors.New("Token not found.")
+	var UserNotFound = errors.New("User for token not found.")
+	var TokenExpired = errors.New("Session expired.")
+
+	var sesh Session
+	filter := bson.M{"username": token.Username}
+
+	err = sessions.FindOne(context.TODO(), filter).Decode(&sesh)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return TokenNotFound
+		}
+	}
+
+	if sesh.IsExpired() {
+		DeleteSession(token, sessions)
+		if EmailInDatabase(token.Username, users) == nil {
+			return UserNotFound
+		}
+		filter := bson.D{{Key: "email", Value: token.Username}}
+		update := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: false}}}}
+
+		_, err = users.UpdateOne(context.TODO(), filter, update)
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				return nil
+			}
+		}
+		return TokenExpired
+	}
+	return nil
+}
+
+// Assumes that session exists in the database.
+func DeleteSession(token Session, sessions *mongo.Collection) (err error) {
+	var TokenNotFound = errors.New("Token not found.")
+	filter := bson.D{{Key: "username", Value: token.Username}}
+
+	sessionFilter := bson.D{{Key: "email", Value: token.Username}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: false}}}}
+
+	_, err = sessions.UpdateOne(context.TODO(), sessionFilter, update)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return TokenNotFound
+		}
+	}
+
+	_, err = sessions.DeleteOne(context.TODO(), filter)
+	return err
+}
+
+func GetSession(uuid uuid.UUID, sessions *mongo.Collection) (session Session) {
+	var sesh Session
+	filter := bson.D{{Key: "token", Value: uuid}}
+
+	err := sessions.FindOne(context.TODO(), filter).Decode(&sesh)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return sesh
+}
+
+// SESSION HANDLING ENDS HERE //

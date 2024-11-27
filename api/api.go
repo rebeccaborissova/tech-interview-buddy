@@ -17,7 +17,7 @@ type LoginResponse struct {
 	// Success code
 	Code int
 
-	Username string
+	Session string
 
 	Message string
 }
@@ -30,6 +30,7 @@ type SignUpParams struct {
 	LastName string
 	DSA bool
 	Year int
+	Description string
 }
 
 // Sign-Up reponse
@@ -38,6 +39,14 @@ type SignUpResponse struct {
 	Code int
 
 	Username string
+
+	Message string
+}
+
+// Logout response
+type LogoutResponse struct {
+	// Success code
+	Code int
 
 	Message string
 }
