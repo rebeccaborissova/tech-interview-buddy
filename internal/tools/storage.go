@@ -308,7 +308,7 @@ func CheckSession(token Session, sessions, users *mongo.Collection) (err error) 
 		}
 	}
 
-	if sesh.isExpired() {
+	if sesh.IsExpired() {
 		DeleteSession(token, sessions)
 		if EmailInDatabase(token.Username, users) == nil {
 			return UserNotFound

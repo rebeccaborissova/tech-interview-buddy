@@ -43,6 +43,14 @@ type SignUpResponse struct {
 	Message string
 }
 
+// Logout response
+type LogoutResponse struct {
+	// Success code
+	Code int
+
+	Message string
+}
+
 // Error response
 type Error struct {
 	// Error code
