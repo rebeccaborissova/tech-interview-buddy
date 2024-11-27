@@ -37,7 +37,7 @@ const Login = () => {
         setError(" ")
         if (result.Session) {
           setSuccess("Username and password correct. This user exists in the database.");
-          setTimeout(() => router.push("/dashboard"), 2000); // redirect after 2 seconds
+          setTimeout(() => router.push("/dashboard"));
         } else {
           // Display error message from backend
           setError(result.Message)

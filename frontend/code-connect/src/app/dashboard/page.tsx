@@ -8,7 +8,7 @@ const Dashboard = () => {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [isProfileBarExpanded, setIsProfileBarExpanded] = useState(false);
 
-  const activeUsers = ["Rebecca", "Tim", "Sarah", "Isa", "Gabriel", "Anna"]; // dummy active users
+  const activeUsers = ["Rebecca", "Tim", "Sarah", "Isa", "Gabriel", "Anna"]; // Example active users
 
   const handleRequestUser = () => {
     setIsPopupOpen(true);
@@ -16,7 +16,8 @@ const Dashboard = () => {
 
   const handleSelectUser = (user: string) => {
     setSelectedUser(user);
-    setIsPopupOpen(false);
+    // Ensure the popup closes only after state updates
+    setTimeout(() => setIsPopupOpen(false), 0);
   };
 
   return (
@@ -27,6 +28,7 @@ const Dashboard = () => {
         <ul className={styles.userList}>
           {activeUsers.map((user) => (
             <li key={user} className={styles.userListItem}>
+              <div className={styles.greenCircle}></div>
               {user}
             </li>
           ))}
@@ -35,14 +37,15 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div className={styles.mainContent}>
-        <h1 className={styles.instructionsTitle}>Welcome to the Dashboard</h1>
+        <h1 className={styles.instructionsTitle}>CodeConnect Dashboard</h1>
         <p className={styles.instructionsText}>
-          Follow the instructions below to interact with active users:
+          Follow the instructions below to practice your technical interviewing skills and land your dream role!
         </p>
         <ul className={styles.instructionsList}>
-          <li>1. View the list of active users in the left panel.</li>
-          <li>2. Press the "Request a User" button to initiate a video call request.</li>
-          <li>3. Expand the profile bar on the right to view more options.</li>
+          <li>1. View the list of active users in the left panel and view their profile by pressing on a user.</li>
+          <li>2. Press the "Request a User" button to initiate a video call request to a specific user.</li>
+          <li>3. After requesting a user, begin the video call by pressing on the video call icon.</li>
+          <li>4. While on the video call, communicate your question-type preferences to the interviewer so they can select an appropriate question from LeetCode.</li>
         </ul>
         <button onClick={handleRequestUser} className={styles.button}>
           Request a User
@@ -67,7 +70,7 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Popup after pressing request user button*/}
+      {/* Popup Modal */}
       {isPopupOpen && (
         <div className={styles.popupOverlay}>
           <div className={styles.popup}>
