@@ -49,9 +49,10 @@ const Dashboard = () => {
         method: "POST",
         headers: {
           'Content-Type':'application/json',
-          'mode': 'no-cors'
+          'Authorization': `Bearer ${sessionToken}`
         },
-        credentials: 'include'
+        credentials: 'include',
+        mode: 'cors'
       });
 
       console.log(response);
