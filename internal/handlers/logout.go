@@ -44,7 +44,7 @@ func logout(writer http.ResponseWriter, request *http.Request) {
 	// Remove the session from the database
 	tools.DeleteSession(userSession, sessionCollection)
 
-	var response = api.LogoutResponse{
+	var response = api.SimpleResponse{
 		Code:    http.StatusOK,
 		Message: "Successfully logged out",
 	}

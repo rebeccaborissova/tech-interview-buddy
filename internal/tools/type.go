@@ -10,12 +10,25 @@ type Account struct {
 	Password  string
 	FirstName string
 	LastName  string
+	InvitedBy string
 
 	TakenDSA bool
 
 	Year   int
 	Online bool
 
+	Description string
+
+}
+
+type AccountWithoutPassword struct {
+	Email     string
+	FirstName string
+	LastName  string
+	InvitedBy string
+
+	TakenDSA bool
+	Year   int
 	Description string
 }
 
@@ -25,11 +38,27 @@ func NewAccount(email, password, firstName, lastName string, takenDSA bool, year
 		Password:  password,
 		FirstName: firstName,
 		LastName:  lastName,
+		InvitedBy : "",
 
 		TakenDSA: takenDSA,
 
 		Year:   year,
 		Online: true,
+
+		Description: des,
+	}
+}
+
+func MakeAccountWOPassword(email, firstName, lastName string, takenDSA bool, year int, des string) AccountWithoutPassword {
+	return AccountWithoutPassword{
+		Email:     email,
+		FirstName: firstName,
+		LastName:  lastName,
+		InvitedBy : "",
+
+		TakenDSA: takenDSA,
+
+		Year:   year,
 
 		Description: des,
 	}
