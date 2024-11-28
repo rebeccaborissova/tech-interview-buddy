@@ -14,5 +14,8 @@
   - `npm run dev`
 - Note: `npm install` is only required for the first use.
 
+# Public API Endpoints
+- Documentation can be found [here](https://github.com/rebeccaborissova/tech-interview-buddy/wiki/Public-API-Endpoints)
+
 # Jira Board
 [link!](https://rebeccaborissov.atlassian.net/jira/software/projects/SCRUM/boards/1/timeline)
