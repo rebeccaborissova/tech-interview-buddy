@@ -18,7 +18,7 @@ type Account struct {
 	Online bool
 
 	Description string
-
+	PushToken string
 }
 
 type AccountWithoutPassword struct {
@@ -46,6 +46,7 @@ func NewAccount(email, password, firstName, lastName string, takenDSA bool, year
 		Online: true,
 
 		Description: des,
+		PushToken: "",
 	}
 }
 
