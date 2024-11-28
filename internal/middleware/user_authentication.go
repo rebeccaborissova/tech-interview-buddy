@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"net/http"
-	"time"
 
 	"CODE_CONNECT_API/api"
 	"CODE_CONNECT_API/internal/tools"
@@ -11,7 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func AuthenticateAndRefresh(next http.Handler) http.Handler {
+func AuthenticateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		// Get the session cookie from the HTTP request
 		cookie, err := request.Cookie("session_token")
@@ -50,29 +49,6 @@ func AuthenticateAndRefresh(next http.Handler) http.Handler {
 			api.RequestErrorHandler(writer, err)
 			return
 		}
-
-		// If the previous session is valid, create a new session token for the current user
-		newSessionToken, err := uuid.NewV4()
-		if err != nil {
-			log.Error("Failed to generate UUID: %v", err)
-			return
-		}
-
-		// Make the session expire after 10 minutes (periodic refresh required)
-		expiresAt := time.Now().Add(600 * time.Second)
-
-		// Add the new session to the database
-		tools.AddSession(newSessionToken, userSession.Username, expiresAt, sessionCollection, usersCollection)
-
-		// Delete the older session token
-		tools.DeleteSession(userSession, sessionCollection)
-
-		// Set the new token as the users `session_token` cookie
-		http.SetCookie(writer, &http.Cookie{
-			Name:    "session_token",
-			Value:   newSessionToken.String(),
-			Expires: expiresAt,
-		})
 
 		next.ServeHTTP(writer, request)
 	})
