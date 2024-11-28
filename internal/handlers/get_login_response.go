@@ -86,6 +86,9 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 
 	sessionCollection := tools.GetSessionCollection(store.DB)
 
+	// Check if there is an existing session
+	
+
 	// Create a new session token (UUID v4)
 	sessionToken, err = uuid.NewV4()
 	if err != nil {

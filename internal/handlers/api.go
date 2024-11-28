@@ -27,7 +27,7 @@ func Handler(router *chi.Mux) {
 		router.Use(middleware.RefreshSession)
 
 		// TODO VVVV
-		// Get list of active users with relevant info
+		router.Post("/activeusers", getActiveUsers)
 		// Get info for current user
 		// Update user account info
 		// Delete user account info

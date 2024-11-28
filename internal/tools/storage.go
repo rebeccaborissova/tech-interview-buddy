@@ -183,9 +183,18 @@ func UpdateLastName(email, lastname string, users *mongo.Collection) (err error)
 	}
 }
 
-func UpdateDescription(email, description string, users *mongo.Collection) (err error){
+func UpdateDescription(email, description string, users *mongo.Collection) (err error) {
 	filter := bson.D{{Key: "email", Value: email}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "Description", Value: description}}}}
+
+	_, err = users.UpdateOne(context.TODO(), filter, update)
+	return err
+}
+
+// Just manuall have a parameter be "" to remove user.
+func UpdateUserInvite(email, user string, users *mongo.Collection)(err error){
+	filter := bson.D{{Key: "email", Value: email}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "invitedby", Value: user}}}}
 
 	_, err = users.UpdateOne(context.TODO(), filter, update)
 	return err
@@ -254,7 +263,8 @@ func ContainsLettersOnly(str string) (applies bool) {
 	return true
 }
 
-func GetOnlineAccounts(user *mongo.Collection) (accounts []Account, err error) {
+// Return all accounts online without password. 
+func GetOnlineAccounts(user *mongo.Collection) (accounts []AccountWithoutPassword, err error) {
 	filter := bson.D{{Key: "online", Value: true}}
 
 	cursor, _ := user.Find(context.TODO(), filter)
@@ -262,7 +272,14 @@ func GetOnlineAccounts(user *mongo.Collection) (accounts []Account, err error) {
 	var results []Account
 	err = cursor.All(context.TODO(), &results)
 
-	return results, err
+	var toReturn []AccountWithoutPassword
+
+	for _, account := range results{
+		toInsert := MakeAccountWOPassword(account.Email, account.FirstName, account.LastName, account.TakenDSA, account.Year, account.Description)
+		toReturn = append(toReturn, toInsert)
+	}
+
+	return toReturn, err
 }
 
 // FUNCTIONS FOR ACCOUNTS ENDS HERE //
@@ -335,7 +352,7 @@ func DeleteSession(token Session, sessions *mongo.Collection) (err error) {
 	sessionFilter := bson.D{{Key: "email", Value: token.Username}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: false}}}}
 
-	_, err = sessions.UpdateOne(context.TODO(), sessionFilter, update)
+	_, err = sessions.UpdateMany(context.TODO(), sessionFilter, update)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return TokenNotFound
