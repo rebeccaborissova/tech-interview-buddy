@@ -120,6 +120,20 @@ func InsertAccount(email, password, first, last, des string, dsa bool, year int,
 	return nil
 }
 
+func getPushToken(email string, users *mongo.Collection) (token string, err error){
+	filter := bson.D{{Key: "email", Value: email}}
+
+	account := users.FindOne(context.TODO(), filter)
+	var decodedAccount bson.M
+
+	err = account.Decode(&decodedAccount)
+	if err != nil {
+		return "", err
+	}
+
+	return decodedAccount["pushtoken"].(string), nil
+}
+
 // v ALL THE UPDATE FUNCTIONS FOR EACH OF THE FIELDS BESIDES EMAIL v
 func UpdatePassword(email, password string, users *mongo.Collection) (passErr error) {
 	var InvalidPasswordError = errors.New("password does not meet security requirements")
