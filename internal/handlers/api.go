@@ -21,14 +21,12 @@ func Handler(router *chi.Mux) {
 
 	router.Route("/app", func(router chi.Router) {
 		// Middleware for /app route
-		router.Use(middleware.AuthenticateUser)
+		router.Use(middleware.AuthenticateAndRefresh)
 
 		// TODO VVVV
 		router.Post("/activeusers", getActiveUsers)
 		router.Post("/userinfo", getUserInfo)
 		// Update user account info
-		// Delete user account info
-
-		router.Use(middleware.RefreshSession)
+		router.Post("/userdelete", deleteUser)
 	})
 }

@@ -359,7 +359,25 @@ func DeleteSession(token Session, sessions *mongo.Collection) (err error) {
 		}
 	}
 
-	_, err = sessions.DeleteOne(context.TODO(), filter)
+	_, err = sessions.DeleteMany(context.TODO(), filter)
+	return err
+}
+
+func DeleteSessionByUsername(email string, sessions *mongo.Collection) (err error) {
+	var TokenNotFound = errors.New("Token not found.")
+	filter := bson.D{{Key: "username", Value: email}}
+
+	sessionFilter := bson.D{{Key: "email", Value: email}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: false}}}}
+
+	_, err = sessions.UpdateMany(context.TODO(), sessionFilter, update)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return TokenNotFound
+		}
+	}
+
+	_, err = sessions.DeleteMany(context.TODO(), filter)
 	return err
 }
 

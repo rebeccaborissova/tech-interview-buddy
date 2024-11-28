@@ -10,7 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func getUserInfo(writer http.ResponseWriter, request *http.Request) {
+func deleteUser(writer http.ResponseWriter, request *http.Request) {
 	// Get an instance of the user and session collection
 	store, err := tools.NewPostgresStore()
 	if err != nil {
@@ -19,23 +19,25 @@ func getUserInfo(writer http.ResponseWriter, request *http.Request) {
 	}
 	usersCollection := tools.GetSessionCollection(store.DB)
 
-	// Get an instance of the user's account
 	username := request.Context().Value("username").(string)
-	userAccount := tools.EmailInDatabase(username, usersCollection)
+
+	// Purge all active sessions for the given account
+	err = tools.DeleteSessionByUsername(username, usersCollection)
 	if err != nil {
 		api.InternalErrorHandler(writer)
 		return
 	}
 
-	var response = api.UserInfoResponse{
-		Code:		http.StatusOK,
-		Username:	userAccount.Email,
-		FirstName:	userAccount.FirstName,
-		LastName: 	userAccount.LastName,
-		InvitedBy:	userAccount.InvitedBy,
-		TakenDSA:	userAccount.TakenDSA,
-		Year:		userAccount.Year,
-		Description: userAccount.Description,
+	// Delete the user's account
+	err = tools.DeleteAccount(username, usersCollection)
+	if err != nil {
+		api.InternalErrorHandler(writer)
+		return
+	}
+
+	var response = api.SimpleResponse{
+		Code: http.StatusOK,
+		Message: "Successfully deleted user: " + username,
 	}
 
 	// Send the HTTP response
