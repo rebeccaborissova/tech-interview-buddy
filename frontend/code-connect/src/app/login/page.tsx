@@ -19,7 +19,6 @@ const Login = () => {
     }
     console.log("Sending data:", { email, password }); // debugging log to see if correct data sent to POST request
     try {
-
       const response = await fetch("http://localhost:8000/account/login", {
         method: "POST",
         headers: {
@@ -33,6 +32,12 @@ const Login = () => {
 
       console.log(response);
       const result = await response.json();
+      console.log(result);
+      const token = result.Session;
+
+      document.cookie = `sessionToken=${token}; path=/; max-age=3600; Secure; SameSite=Strict`;
+      console.log(document.cookie);
+
       if (response.ok) {
         setError(" ")
         if (result.Session) {
