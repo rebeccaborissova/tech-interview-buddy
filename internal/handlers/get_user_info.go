@@ -11,7 +11,7 @@ import (
 )
 
 func getUserInfo(writer http.ResponseWriter, request *http.Request) {
-	// Get an instance of the user and session collection
+	// Get an instance of the user collection
 	store, err := tools.NewPostgresStore()
 	if err != nil {
 		api.InternalErrorHandler(writer)
