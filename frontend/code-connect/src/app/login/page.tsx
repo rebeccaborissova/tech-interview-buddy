@@ -33,11 +33,13 @@ const Login = () => {
 
       console.log(response);
       const result = await response.json();
+      const userSession = result.Session;
+      console.log(result)
       if (response.ok) {
         setError(" ")
         if (result.Session) {
           setSuccess("Username and password correct. This user exists in the database.");
-          setTimeout(() => router.push("/dashboard"));
+          setTimeout(() => router.push("/dashboard", userSession));
         } else {
           // Display error message from backend
           setError(result.Message)

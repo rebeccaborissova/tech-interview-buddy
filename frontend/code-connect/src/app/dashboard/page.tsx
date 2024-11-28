@@ -1,14 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./Dashboard.module.css";
+
+interface User {
+  name: string;
+}
 
 const Dashboard = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [isProfileBarExpanded, setIsProfileBarExpanded] = useState(false);
+  const [activeUsers, setActiveUsers] = useState<string[]>([]); // List of active users
+  const [error, setError] = useState<string | null>(null); // Error message
 
-  const activeUsers = ["Rebecca", "Tim", "Sarah", "Isa", "Gabriel", "Anna"]; // Example active users
+  useEffect(() => {
+    const fetchActiveUsers = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/app/activeusers", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const result = await response.json(); // Parse JSON response
+        console.log(result)
+        if (response.ok) {
+          setError(""); // Clear any previous errors
+
+          // Assuming the result is an array of user objects with the required fields
+          setActiveUsers(result);
+        } else {
+          // If the response is not OK, show error message from backend
+          setError(result.Message || "Failed to fetch active users.");
+        }
+      } catch (err) {
+        console.error("Network request failed:", err); // Log network error
+        setError("Unable to load active users. Please check your network.");
+      }
+    };
+
+    fetchActiveUsers();
+  }, []); // Run on component mount
 
   const handleSelectUser = (user: string) => {
     setSelectedUser(user);
@@ -25,18 +59,22 @@ const Dashboard = () => {
       {/* Left Panel */}
       <div className={styles.leftPanel}>
         <h2 className={styles.panelTitle}>Active Users</h2>
-        <ul className={styles.userList}>
-          {activeUsers.map((user) => (
-            <li
-              key={user}
-              className={styles.userListItem}
-              onClick={() => handleSelectUser(user)}
-            >
-              <div className={styles.greenCircle}></div>
-              {user}
-            </li>
-          ))}
-        </ul>
+        {error ? (
+          <p className={styles.errorText}>{error}</p>
+        ) : (
+          <ul className={styles.userList}>
+            {activeUsers.map((user) => (
+              <li
+                key={user}
+                className={styles.userListItem}
+                onClick={() => handleSelectUser(user)}
+              >
+                <div className={styles.greenCircle}></div>
+                {user}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Main Content */}
