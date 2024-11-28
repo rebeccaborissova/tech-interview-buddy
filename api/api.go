@@ -43,8 +43,8 @@ type SignUpResponse struct {
 	Message string
 }
 
-// Logout response
-type LogoutResponse struct {
+// Generic response
+type SimpleResponse struct {
 	// Success code
 	Code int
 
