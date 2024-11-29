@@ -1,12 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import styles from "./Dashboard.module.css";
-import toast, { Toaster } from 'react-hot-toast';
-import { generateToken, messaging } from '../firebase/firebase.js'
-//import { sendCallInvite } from '../firebase';
-//import { requestNotificationPermission } from '../firebase/firebase.js';
-import { onMessage } from "firebase/messaging";
 import { getToken } from "../utils/token";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -18,8 +13,6 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const router = useRouter();
-
-  //requestNotificationPermission();
 
   const activeUsers = ["Rebecca", "Tim", "Sarah", "Isa", "Gabriel", "Anna"]; // Example active users
 
@@ -33,29 +26,7 @@ const Dashboard = () => {
     setSelectedUser(null);
   };
 
-  /*const handleVideoCallRequest = async () => {
-    const token = 'RECIPIENT_FCM_TOKEN'; // Replace with the actual recipient's FCM token
-    const callerName = 'Your Name'; // Replace with the actual caller's name
-
-    try {
-      const result = await sendCallInvite(token, callerName);
-      if (result.data.success) {
-        console.log('Call invite sent successfully:', result.data.jitsiRoomUrl);
-      } else {
-        console.error('Failed to send call invite:', result.data.error);
-      }
-    } catch (error) {
-      console.error('Error sending call invite:', error);
-    }
-  };*/
-        
   useEffect(() => {
-    generateToken();
-    onMessage(messaging, (payload) => {
-      console.log(payload);
-      toast(payload?.notification?.body || "hi");
-    })   
-        
     const token = getToken();
     if(!token) {
       router.push("/login");
@@ -93,7 +64,6 @@ const Dashboard = () => {
 
   return (
     <div className={styles.container}>
-      <Toaster position="top-right" />
       {/* Left Panel */}
       <div className={styles.leftPanel}>
         <h2 className={styles.panelTitle}>Active Users</h2>
@@ -154,7 +124,7 @@ const Dashboard = () => {
             <p className={styles.popupDescription}>
               Click the button below to request a video call.
             </p>
-            <button className={styles.videoCallButton} onClick={handleVideoCallRequest}>
+            <button className={styles.videoCallButton}>
               Request Video Call
             </button>
             <button
