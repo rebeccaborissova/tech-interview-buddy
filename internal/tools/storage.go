@@ -392,7 +392,7 @@ func GetSession(uuid uuid.UUID, sessions *mongo.Collection) (session Session) {
 
 func GetSessionByUser(user string, sessions *mongo.Collection) (session Session) {
 	var sesh Session
-	filter := bson.D{{Key: "token", Value: user}}
+	filter := bson.D{{Key: "username", Value: user}}
 
 	err := sessions.FindOne(context.TODO(), filter).Decode(&sesh)
 	if err != nil {
