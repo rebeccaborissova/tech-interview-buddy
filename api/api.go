@@ -51,6 +51,21 @@ type SimpleResponse struct {
 	Message string
 }
 
+// User info response
+type UserInfoResponse struct {
+	// Success code
+	Code int
+
+	// User attributes
+	Username string
+	FirstName string
+	LastName  string
+	InvitedBy string
+	TakenDSA bool
+	Year   int
+	Description string
+}
+
 // Error response
 type Error struct {
 	// Error code

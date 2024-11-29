@@ -7,11 +7,17 @@ import { generateToken, messaging } from '../firebase/firebase.js'
 //import { sendCallInvite } from '../firebase';
 //import { requestNotificationPermission } from '../firebase/firebase.js';
 import { onMessage } from "firebase/messaging";
+import { getToken } from "../utils/token";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [isProfileBarExpanded, setIsProfileBarExpanded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const router = useRouter();
 
   //requestNotificationPermission();
 
@@ -42,14 +48,48 @@ const Dashboard = () => {
       console.error('Error sending call invite:', error);
     }
   };*/
-
+        
   useEffect(() => {
     generateToken();
     onMessage(messaging, (payload) => {
       console.log(payload);
       toast(payload?.notification?.body || "hi");
-    })
-  })
+    })   
+        
+    const token = getToken();
+    if(!token) {
+      router.push("/login");
+    }
+    setSessionToken(token);
+  }, []);
+
+  useEffect(() => {
+    console.log("Session token:", sessionToken);
+    if(sessionToken) {
+      fetchActiveUsers();
+    }
+  }, [sessionToken]);
+
+  const fetchActiveUsers = async () => {
+    console.log("sessionToken in api call: ", sessionToken)
+    try {
+      const response = await fetch("http://localhost:8000/app/activeusers", {
+        method: "POST",
+        headers: {
+          'Content-Type':'application/json',
+        },
+        credentials: 'include',
+        mode: 'cors'
+      });
+
+      console.log(response);
+      const result = await response.json();
+      console.log(result);
+
+    } catch (error) {
+      console.error("Error fetching active users:", error);
+    }
+  };
 
   return (
     <div className={styles.container}>

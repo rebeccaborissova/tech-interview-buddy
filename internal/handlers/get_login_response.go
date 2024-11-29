@@ -87,7 +87,6 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 	sessionCollection := tools.GetSessionCollection(store.DB)
 
 	// Check if there is an existing session
-	
 
 	// Create a new session token (UUID v4)
 	sessionToken, err = uuid.NewV4()
@@ -95,7 +94,10 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		log.Error("Failed to generate UUID: %v", err)
 	}
 	// Make the session expire after 10 minutes (periodic refresh required)
-	expiresAt := time.Now().Add(600 * time.Second)
+	expiresAt := time.Now().Add(time.Hour)
+
+	// Delete old sessions 
+	tools.DeleteSessionByUsername(username, sessionCollection)
 
 	// Add the new session to the database
 	tools.AddSession(sessionToken, username, expiresAt, sessionCollection, usersCollection)

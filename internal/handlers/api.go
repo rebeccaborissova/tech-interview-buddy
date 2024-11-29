@@ -13,23 +13,19 @@ func Handler(router *chi.Mux) {
 	router.Use(middleware.CORSMiddleware)
 
 	router.Route("/account", func(router chi.Router) {
-		// Middleware for /account route
-		// router.Use(middleware.Authorization)
 
 		router.Post("/login", getLoginReponse)
 		router.Post("/signup", getSignUpReponse)
 		router.Post("/logout", logout)
-		//router.Post("/refresh", refreshSession)
 	})
 
 	router.Route("/app", func(router chi.Router) {
 		// Middleware for /app route
-		router.Use(middleware.RefreshSession)
+		router.Use(middleware.AuthenticateAndRefresh)
 
-		// TODO VVVV
 		router.Post("/activeusers", getActiveUsers)
-		// Get info for current user
-		// Update user account info
-		// Delete user account info
+		router.Post("/userinfo", getUserInfo)
+		router.Post("/useredit", updateUserInfo)
+		router.Post("/userdelete", deleteUser)
 	})
 }

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -11,8 +12,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func RefreshSession(next http.Handler) http.Handler {
+func AuthenticateAndRefresh(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		// Get the session cookie from the HTTP request
 		cookie, err := request.Cookie("session_token")
 		if err != nil {
 			if err == http.ErrNoCookie {
@@ -22,9 +24,15 @@ func RefreshSession(next http.Handler) http.Handler {
 			writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		// Get the session UUID from the cookie
 		sessionToken := cookie.Value
+		sessionUUID, err := uuid.FromString(sessionToken)
+		if err != nil {
+			api.InternalErrorHandler(writer)
+			return
+		}
 
-		// Get an instance of the user's session
+		// Get an instance of the user and session collection
 		store, err := tools.NewPostgresStore()
 		if err != nil {
 			api.InternalErrorHandler(writer)
@@ -32,17 +40,15 @@ func RefreshSession(next http.Handler) http.Handler {
 		}
 		usersCollection := tools.GetUserCollection(store.DB)
 		sessionCollection := tools.GetSessionCollection(store.DB)
-		sessionUUID, err := uuid.FromString(sessionToken)
-		if err != nil {
-			api.InternalErrorHandler(writer)
-			return
-		}
+
+		// Get an instance of the user's session
 		userSession := tools.GetSession(sessionUUID, sessionCollection)
 
-		// Delete user session if it has expired
-		if userSession.IsExpired() {
-			tools.DeleteSession(userSession, sessionCollection)
-			writer.WriteHeader(http.StatusUnauthorized)
+		// Ensure that the session is valid
+		err = tools.CheckSession(userSession, sessionCollection, usersCollection)
+		if err != nil {
+			log.Error(err)
+			api.RequestErrorHandler(writer, err)
 			return
 		}
 
@@ -50,16 +56,17 @@ func RefreshSession(next http.Handler) http.Handler {
 		newSessionToken, err := uuid.NewV4()
 		if err != nil {
 			log.Error("Failed to generate UUID: %v", err)
+			return
 		}
 
-		// Make the session expire after 10 minutes (periodic refresh required)
-		expiresAt := time.Now().Add(600 * time.Second)
+		// Make the session expire after 1 hour (periodic refresh required)
+		expiresAt := time.Now().Add(time.Hour)
+
+		// Delete the older session token
+		tools.DeleteSessionByUsername(userSession.Username, sessionCollection)
 
 		// Add the new session to the database
 		tools.AddSession(newSessionToken, userSession.Username, expiresAt, sessionCollection, usersCollection)
-
-		// Delete the older session token
-		tools.DeleteSession(userSession, sessionCollection)
 
 		// Set the new token as the users `session_token` cookie
 		http.SetCookie(writer, &http.Cookie{
@@ -67,7 +74,8 @@ func RefreshSession(next http.Handler) http.Handler {
 			Value:   newSessionToken.String(),
 			Expires: expiresAt,
 		})
-		
-		next.ServeHTTP(writer, request)
+
+		ctx := context.WithValue(request.Context(), "username", userSession.Username)
+		next.ServeHTTP(writer, request.WithContext(ctx))
 	})
 }
