@@ -42,7 +42,7 @@ func logout(writer http.ResponseWriter, request *http.Request) {
 	userSession := tools.GetSession(sessionUUID, sessionCollection)
 
 	// Remove the session from the database
-	tools.DeleteSession(userSession, sessionCollection)
+	tools.DeleteSessionByUsername(userSession.Username, sessionCollection)
 
 	var response = api.SimpleResponse{
 		Code:    http.StatusOK,
