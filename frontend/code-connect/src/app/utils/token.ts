@@ -1,8 +1,9 @@
 export const getToken = (): string | null => {
   try {
-    if (!document.cookie) return null;
+    const cookies = document.cookie;
+    if (!cookies) return null;
 
-    const match = document.cookie.match(/sessionToken=([^;]+)/);
+    const match = cookies.match(/session_token=([^;]+)/);
     return match ? match[1] : null;
 
   } catch (error) {

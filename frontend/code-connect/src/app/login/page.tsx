@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getToken } from "../utils/token";
 
 const Login = () => {
   const router = useRouter();
@@ -35,7 +36,14 @@ const Login = () => {
       console.log(result);
       const token = result.Session;
 
-      document.cookie = `sessionToken=${token}; path=/; max-age=3600; Secure; SameSite=Strict`;
+      const cookiesToken = getToken();
+      if(!cookiesToken) {
+        const now = new Date();
+        now.setTime(now.getTime() + 10 * 60 * 1000); //expires in 10 minutes
+        const expires = now.toUTCString();
+        document.cookie = `session_token=${token}; expires=${expires}; path=/;`;
+      }
+
       console.log(document.cookie);
 
       if (response.ok) {
@@ -44,16 +52,13 @@ const Login = () => {
           setSuccess("Username and password correct. This user exists in the database.");
           setTimeout(() => router.push("/dashboard"));
         } else {
-          // Display error message from backend
           setError(result.Message)
         }
       } else {
-        // Display error message from backend
         setError(result.Message)
-        // setError("Network request failed. 400 error.");
       }
     } catch (err) {
-      console.error("Network request failed:", err); // error log
+      console.error("Network request failed:", err);
       setError("Network response error.");
     }
   };

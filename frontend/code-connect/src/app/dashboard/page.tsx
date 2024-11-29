@@ -44,12 +44,10 @@ const Dashboard = () => {
   const fetchActiveUsers = async () => {
     console.log("sessionToken in api call: ", sessionToken)
     try {
-      document.cookie = `sessionToken=${sessionToken}; path=/; max-age=3600; Secure; SameSite=Strict`;
       const response = await fetch("http://localhost:8000/app/activeusers", {
         method: "POST",
         headers: {
           'Content-Type':'application/json',
-          'Authorization': `Bearer ${sessionToken}`
         },
         credentials: 'include',
         mode: 'cors'
