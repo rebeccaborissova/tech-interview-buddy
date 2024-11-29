@@ -59,14 +59,14 @@ func AuthenticateAndRefresh(next http.Handler) http.Handler {
 			return
 		}
 
-		// Make the session expire after 10 minutes (periodic refresh required)
-		expiresAt := time.Now().Add(600 * time.Second)
+		// Make the session expire after 1 hour (periodic refresh required)
+		expiresAt := time.Now().Add(time.Hour)
+
+		// Delete the older session token
+		tools.DeleteSessionByUsername(userSession.Username, sessionCollection)
 
 		// Add the new session to the database
 		tools.AddSession(newSessionToken, userSession.Username, expiresAt, sessionCollection, usersCollection)
-
-		// Delete the older session token
-		tools.DeleteSession(userSession, sessionCollection)
 
 		// Set the new token as the users `session_token` cookie
 		http.SetCookie(writer, &http.Cookie{
