@@ -24,7 +24,9 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [activeUsers, setActiveUsers] = useState<User[] | string>([]);
-  const router = useRouter(); // Router instance
+  const [isIncomingCallPopupOpen, setIsIncomingCallPopupOpen] = useState(false);
+  const [incomingCallUser, setIncomingCallUser] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleSelectUser = (user: User) => {
     setSelectedUser(user);
@@ -36,18 +38,18 @@ const Dashboard = () => {
     setSelectedUser(null);
   };
 
-  const handleViewProfile = () => {
-    router.push("/profile-page"); // Navigate to /profile-page
-  };
-
   useEffect(() => {
     setPushToken();
     
     onMessage(messaging, (payload) => {
       console.log(payload);
-      toast(payload?.notification?.body || "hi");
-    });
-
+      if (payload?.notification?.title === 'Incoming Call') {
+        setIncomingCallUser(payload?.notification?.body || "Unknown User");
+        setIsIncomingCallPopupOpen(true);
+      } else {
+        toast(payload?.notification?.body || "hi");
+      }
+    })
     const token = getToken();
     if (!token) {
       router.push("/login");
@@ -95,14 +97,20 @@ const Dashboard = () => {
     }
   };
 
+  const handleAcceptCall = () => {
+    // Add your call acceptance logic here
+    setIsIncomingCallPopupOpen(false);
+    setIncomingCallUser(null);
+  };
+
   return (
     <div className={styles.container}>
       <Toaster position="top-right" />
       
       {/* View My Profile Button */}
-      <button
-        className={styles.viewProfileButton}
-        onClick={handleViewProfile} // Navigate to profile page
+      <button 
+        className={styles.viewProfileButton} 
+        onClick={() => router.push('/profile-page')}
       >
         View My Profile
       </button>
@@ -145,7 +153,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Popup Modal */}
+
+      {/* Outgoing Call Request Popup */}
       {isPopupOpen && selectedUser && (
         <div className={styles.popupOverlay}>
           <div className={styles.popup}>
@@ -171,10 +180,33 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Incoming Call Popup */}
+      {isIncomingCallPopupOpen && (
+        <div className={styles.popupOverlay}>
+          <div className={styles.popup}>
+            <h3 className={styles.popupTitle}>
+              Incoming Call from {incomingCallUser}
+            </h3>
+            <div className={styles.popupButtons}>
+              <button 
+                className={styles.videoCallButton}
+                onClick={handleAcceptCall}
+              >
+                Accept Video Call
+              </button>
+              <button
+                onClick={() => setIsIncomingCallPopupOpen(false)}
+                className={styles.popupCloseButton}
+              >
+                Decline
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default Dashboard;
-
-
