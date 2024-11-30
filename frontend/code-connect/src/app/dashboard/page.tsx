@@ -22,7 +22,7 @@ const Dashboard = () => {
   const [isProfileBarExpanded, setIsProfileBarExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
-  const [activeUsers, setActiveUsers] = useState<User[]>([]);
+  const [activeUsers, setActiveUsers] = useState<User[] | string>([]);
   const router = useRouter();
 
   const handleSelectUser = (user: User) => {
@@ -64,11 +64,16 @@ const Dashboard = () => {
 
       const result = await response.json();
       const parsedUsers = JSON.parse(result.Message) as User[];
-      setActiveUsers(parsedUsers);
+      if (parsedUsers && parsedUsers.length > 0) {
+        setActiveUsers(parsedUsers);
+      } else {
+        setActiveUsers("No active users found.");
+      }
       setIsLoading(false);
 
     } catch (error) {
       console.error("Error fetching active users:", error);
+      setActiveUsers("No active users found.");
       setIsLoading(false);
     }
   };
@@ -80,7 +85,9 @@ const Dashboard = () => {
         <h2 className={styles.panelTitle}>Active Users</h2>
         <ul className={styles.userList}>
           {isLoading ? (
-            <li>Loading...</li>
+            <li className={styles.messageItem}>Loading...</li>
+          ) : typeof activeUsers === 'string' ? (
+            <li className={styles.messageItem}>{activeUsers}</li>
           ) : (
             activeUsers.map((user) => (
               <li
@@ -141,15 +148,17 @@ const Dashboard = () => {
               DSA Experience: {selectedUser.TakenDSA ? 'Yes' : 'No'}<br/>
               Description: {selectedUser.Description}
             </p>
-            <button className={styles.videoCallButton}>
-              Request Video Call
-            </button>
-            <button
-              onClick={handleClosePopup}
-              className={styles.popupCloseButton}
-            >
-              Close
-            </button>
+            <div className={styles.popupButtons}>
+              <button className={styles.videoCallButton}>
+                Request Video Call
+              </button>
+              <button
+                onClick={handleClosePopup}
+                className={styles.popupCloseButton}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
