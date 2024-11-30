@@ -56,11 +56,12 @@ const Dashboard = () => {
   };*/
         
   useEffect(() => {
-    generateToken();
+    setPushToken();
+    
     onMessage(messaging, (payload) => {
       console.log(payload);
       toast(payload?.notification?.body || "hi");
-    })   
+    })
         
     const token = getToken();
     if(!token) {
@@ -75,6 +76,37 @@ const Dashboard = () => {
       fetchActiveUsers();
     }
   }, [sessionToken]);
+
+  const setPushToken = async () => {
+    const pushToken = await generateToken();
+    console.log("Push token:", pushToken);
+
+    /*
+    try {
+      const response = await fetch("http://localhost:8000/app/setpushtoken", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Important for sending cookies
+        body: JSON.stringify({
+          "Token": pushToken
+        })
+      });
+  
+      const result = await response.json();
+      if (response.ok) {
+        console.log("Push token set successfully:", result);
+        return true;
+      } else {
+        console.error("Failed to set push token:", result);
+        return false;
+      }
+    } catch (error) {
+      console.error("Error setting push token:", error);
+      return false;
+    }*/
+  };
 
   const fetchActiveUsers = async () => {
     console.log("sessionToken in api call: ", sessionToken)
