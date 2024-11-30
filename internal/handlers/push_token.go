@@ -37,11 +37,16 @@ func getPushToken(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+// setPushToken handles requests to update a user's push token
 func setPushToken(writer http.ResponseWriter, request *http.Request) {
-	// Decode HTTP request body into params struct
 	var params = api.SimpleRequest{}
 	decoder := json.NewDecoder(request.Body)
 	err := decoder.Decode(&params)
+	if err != nil {
+		log.Error(err)
+		api.InternalErrorHandler(writer)
+		return
+	}
 
 	// Get an instance of the user collection
 	store, err := tools.NewPostgresStore()

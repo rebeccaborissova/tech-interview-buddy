@@ -20,13 +20,41 @@ export const generateToken = async () => {
     const permission = await Notification.requestPermission();
     console.log("notifications permission: ", permission)
 
+    let token = undefined;
+
     //only if notification permission was granted, we can generate the token
     if (permission == "granted") {
-        const token = await getToken(messaging, {
+        token = await getToken(messaging, {
             vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY
         });
     
         console.log("messaging token: ", token)
     }
+
+    try {
+        const response = await fetch("http://localhost:8000/app/setpushtoken", {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Important for sending cookies
+          body: JSON.stringify({
+            "Token": token
+          })
+        });
     
-}
+        const result = await response.json();
+        if (response.ok) {
+          console.log("Push token set successfully:", result);
+          return true;
+        } else {
+          console.error("Failed to set push token:", result);
+          return false;
+        }
+    } catch (error) {
+        console.error("Error setting push token:", error);
+        return false;
+    }
+};
+
+    
