@@ -27,6 +27,8 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [activeUsers, setActiveUsers] = useState<User[] | string>([]);
+  const [isIncomingCallPopupOpen, setIsIncomingCallPopupOpen] = useState(false);
+  const [incomingCallUser, setIncomingCallUser] = useState<string | null>(null);
   const router = useRouter();
 
   const handleSelectUser = (user: User) => {
@@ -60,7 +62,12 @@ const Dashboard = () => {
     
     onMessage(messaging, (payload) => {
       console.log(payload);
-      toast(payload?.notification?.body || "hi");
+      if (payload?.notification?.title === 'Incoming Call') {
+        setIncomingCallUser(payload?.notification?.body || "Unknown User");
+        setIsIncomingCallPopupOpen(true);
+      } else {
+        toast(payload?.notification?.body || "hi");
+      }
     })
         
     const token = getToken();
@@ -80,32 +87,6 @@ const Dashboard = () => {
   const setPushToken = async () => {
     const pushToken = await generateToken();
     console.log("Push token:", pushToken);
-
-    /*
-    try {
-      const response = await fetch("http://localhost:8000/app/setpushtoken", {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Important for sending cookies
-        body: JSON.stringify({
-          "Token": pushToken
-        })
-      });
-  
-      const result = await response.json();
-      if (response.ok) {
-        console.log("Push token set successfully:", result);
-        return true;
-      } else {
-        console.error("Failed to set push token:", result);
-        return false;
-      }
-    } catch (error) {
-      console.error("Error setting push token:", error);
-      return false;
-    }*/
   };
 
   const fetchActiveUsers = async () => {
@@ -134,6 +115,12 @@ const Dashboard = () => {
       setActiveUsers("No active users found.");
       setIsLoading(false);
     }
+  };
+
+  const handleAcceptCall = () => {
+    // Add your call acceptance logic here
+    setIsIncomingCallPopupOpen(false);
+    setIncomingCallUser(null);
   };
 
   return (
@@ -195,7 +182,7 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Popup Modal */}
+      {/* Outgoing Call Request Popup */}
       {isPopupOpen && selectedUser && (
         <div className={styles.popupOverlay}>
           <div className={styles.popup}>
@@ -216,6 +203,31 @@ const Dashboard = () => {
                 className={styles.popupCloseButton}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Incoming Call Popup */}
+      {isIncomingCallPopupOpen && (
+        <div className={styles.popupOverlay}>
+          <div className={styles.popup}>
+            <h3 className={styles.popupTitle}>
+              Incoming Call from {incomingCallUser}
+            </h3>
+            <div className={styles.popupButtons}>
+              <button 
+                className={styles.videoCallButton}
+                onClick={handleAcceptCall}
+              >
+                Accept Video Call
+              </button>
+              <button
+                onClick={() => setIsIncomingCallPopupOpen(false)}
+                className={styles.popupCloseButton}
+              >
+                Decline
               </button>
             </div>
           </div>
