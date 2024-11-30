@@ -50,21 +50,59 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		token    = params.Authorization
 	)
 
+	// Get an instance of the user and session collections
+	store, err := tools.NewPostgresStore()
+	if err != nil {
+		api.InternalErrorHandler(writer)
+		return
+	}
+	usersCollection := tools.GetUserCollection(store.DB)
+	sessionCollection := tools.GetSessionCollection(store.DB)
+
+	// Check if there is an existing session
+	// Get the session cookie from the HTTP request
+	cookie, err := request.Cookie("session_token")
+	if err != nil {
+		log.Info("No existing session cookie found, continuing login")
+	} else {
+		// Get the session UUID from the cookie
+		sessionUUID, err := uuid.FromString(cookie.Value)
+		if err != nil {
+			api.InternalErrorHandler(writer)
+			return
+		}
+
+		// Check if the existing session is valid
+		userSession := tools.GetSession(sessionUUID, sessionCollection)
+		err = tools.CheckSession(userSession, sessionCollection, usersCollection)
+		if err != nil {
+			// If the session did not pass the check then continue and issue a new session :3
+			log.Error(err)
+		} else {
+			var response = api.LoginResponse{
+				Code:    http.StatusOK,
+				Session: sessionToken.String(),
+				Message: "User is already logged in, using existing session",
+			}
+		
+			// Send the HTTP response
+			err = json.NewEncoder(writer).Encode(response)
+			if err != nil {
+				log.Error(err)
+				api.InternalErrorHandler(writer)
+				return
+			}
+		}
+	}
+
 	if username == "" || token == "" {
 		log.Error(IncompleteRequestError)
 		api.RequestErrorHandler(writer, IncompleteRequestError)
 		return
 	}
 
-	// Get an instance of the database
-	store, err := tools.NewPostgresStore()
-	if err != nil {
-		api.InternalErrorHandler(writer)
-		return
-	}
 
 	// Get account with primary key "username"
-	usersCollection := tools.GetUserCollection(store.DB)
 	account := tools.EmailInDatabase(username, usersCollection)
 	if account == nil {
 		log.Error(UnauthorizedError)
@@ -84,17 +122,13 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	sessionCollection := tools.GetSessionCollection(store.DB)
-
-	// Check if there is an existing session
-
 	// Create a new session token (UUID v4)
 	sessionToken, err = uuid.NewV4()
 	if err != nil {
 		log.Error("Failed to generate UUID: %v", err)
 	}
-	// Make the session expire after 10 minutes (periodic refresh required)
-	expiresAt := time.Now().Add(time.Hour)
+	// Make the session expire after 2 hours (periodic refresh required)
+	expiresAt := time.Now().Add(2 * time.Hour)
 
 	// Delete old sessions 
 	tools.DeleteSessionByUsername(username, sessionCollection)

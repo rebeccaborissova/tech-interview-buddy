@@ -296,6 +296,20 @@ func GetOnlineAccounts(user, session *mongo.Collection) (accounts []AccountWitho
 	return toReturn, err
 }
 
+func GetPushToken(email string, users *mongo.Collection) (pushToken *string) {
+	var account Account
+
+	filter := bson.M{"email": email}
+	err := users.FindOne(context.TODO(), filter).Decode(&account)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil
+		}
+	}
+
+	return &account.PushToken
+}
+
 // FUNCTIONS FOR ACCOUNTS ENDS HERE //
 
 // SESSION HANDLING BEGINS HERE //

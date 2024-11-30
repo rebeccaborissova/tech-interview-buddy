@@ -66,6 +66,11 @@ type UserInfoResponse struct {
 	Description string
 }
 
+// Generic one parameter request
+type SimpleRequest struct {
+	Token string
+}
+
 // Error response
 type Error struct {
 	// Error code
