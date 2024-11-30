@@ -6,17 +6,26 @@ import { getToken } from "../utils/token";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+interface User {
+  Email: string;
+  FirstName: string;
+  LastName: string;
+  InvitedBy: string;
+  TakenDSA: boolean;
+  Year: number;
+  Description: string;
+}
+
 const Dashboard = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isProfileBarExpanded, setIsProfileBarExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [activeUsers, setActiveUsers] = useState<User[]>([]);
   const router = useRouter();
 
-  const activeUsers = ["Rebecca", "Tim", "Sarah", "Isa", "Gabriel", "Anna"]; // Example active users
-
-  const handleSelectUser = (user: string) => {
+  const handleSelectUser = (user: User) => {
     setSelectedUser(user);
     setIsPopupOpen(true); // Open popup for the selected user
   };
@@ -53,12 +62,14 @@ const Dashboard = () => {
         mode: 'cors'
       });
 
-      console.log(response);
       const result = await response.json();
-      console.log(result);
+      const parsedUsers = JSON.parse(result.Message) as User[];
+      setActiveUsers(parsedUsers);
+      setIsLoading(false);
 
     } catch (error) {
       console.error("Error fetching active users:", error);
+      setIsLoading(false);
     }
   };
 
@@ -68,16 +79,20 @@ const Dashboard = () => {
       <div className={styles.leftPanel}>
         <h2 className={styles.panelTitle}>Active Users</h2>
         <ul className={styles.userList}>
-          {activeUsers.map((user) => (
-            <li
-              key={user}
-              className={styles.userListItem}
-              onClick={() => handleSelectUser(user)}
-            >
-              <div className={styles.greenCircle}></div>
-              {user}
-            </li>
-          ))}
+          {isLoading ? (
+            <li>Loading...</li>
+          ) : (
+            activeUsers.map((user) => (
+              <li
+                key={user.Email}
+                className={styles.userListItem}
+                onClick={() => handleSelectUser(user)}
+              >
+                <div className={styles.greenCircle}></div>
+                {user.FirstName} {user.LastName}
+              </li>
+            ))
+          )}
         </ul>
       </div>
 
@@ -115,14 +130,16 @@ const Dashboard = () => {
       </div>
 
       {/* Popup Modal */}
-      {isPopupOpen && (
+      {isPopupOpen && selectedUser && (
         <div className={styles.popupOverlay}>
           <div className={styles.popup}>
             <h3 className={styles.popupTitle}>
-              Video Call Request for {selectedUser}
+              Video Call Request for {selectedUser.FirstName} {selectedUser.LastName}
             </h3>
             <p className={styles.popupDescription}>
-              Click the button below to request a video call.
+              Year: {selectedUser.Year}<br/>
+              DSA Experience: {selectedUser.TakenDSA ? 'Yes' : 'No'}<br/>
+              Description: {selectedUser.Description}
             </p>
             <button className={styles.videoCallButton}>
               Request Video Call

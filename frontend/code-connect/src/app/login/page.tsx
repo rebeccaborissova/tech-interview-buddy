@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getToken } from "../utils/token";
 
@@ -11,9 +11,16 @@ const Login = () => {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
 
+  console.log("poop");
+
+  useEffect(() => {
+    console.log("document.cookie before calling login", document.cookie);
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setError("Poop");
     if (!email.trim() || !password.trim() ) {
       setError("Please enter your email and password.");
       return;
