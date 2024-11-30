@@ -80,6 +80,11 @@ type Error struct {
 	Message string
 }
 
+// GetPushTokenRequest structure
+type GetPushTokenRequest struct {
+    Username string 
+}
+
 func writeError(writer http.ResponseWriter, message string, code int) {
 	response := Error{
 		Code:    code,
