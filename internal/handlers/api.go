@@ -28,5 +28,9 @@ func Handler(router *chi.Mux) {
 		router.Post("/useredit", updateUserInfo)
 		router.Post("/userdelete", deleteUser)
 		router.Post("/refresh", refreshUserSession)
+		
+		// For push notifications
+		router.Post("/getpushtoken", getPushToken)
+		router.Post("/setpushtoken", setPushToken)
 	})
 }
