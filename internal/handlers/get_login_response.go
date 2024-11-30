@@ -81,10 +81,10 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		} else {
 			var response = api.LoginResponse{
 				Code:    http.StatusOK,
-				Session: sessionToken.String(),
+				Session: sessionUUID.String(),
 				Message: "User is already logged in, using existing session",
 			}
-		
+
 			// Send the HTTP response
 			err = json.NewEncoder(writer).Encode(response)
 			if err != nil {
@@ -92,6 +92,7 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 				api.InternalErrorHandler(writer)
 				return
 			}
+			return
 		}
 	}
 
@@ -101,6 +102,8 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	// Delete any sessions that may have existed previously for this user
+	err = tools.DeleteSessionByUsername(username, sessionCollection)
 
 	// Get account with primary key "username"
 	account := tools.EmailInDatabase(username, usersCollection)
@@ -130,7 +133,7 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 	// Make the session expire after 2 hours (periodic refresh required)
 	expiresAt := time.Now().Add(2 * time.Hour)
 
-	// Delete old sessions 
+	// Delete old sessions
 	tools.DeleteSessionByUsername(username, sessionCollection)
 
 	// Add the new session to the database
