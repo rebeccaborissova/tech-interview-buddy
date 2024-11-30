@@ -26,11 +26,15 @@ const Dashboard = () => {
   const [activeUsers, setActiveUsers] = useState<User[] | string>([]);
   const [isIncomingCallPopupOpen, setIsIncomingCallPopupOpen] = useState(false);
   const [incomingCallUser, setIncomingCallUser] = useState<string | null>(null);
+  const [userPushToken, setUserPushToken] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSelectUser = (user: User) => {
+  const handleSelectUser = async (user: User) => {
+    const tokeny = await getPushToken(user.Email);
+    console.log("Successfully got Push token of user:", tokeny);
+    setUserPushToken(tokeny);
     setSelectedUser(user);
-    setIsPopupOpen(true); // Open popup for the selected user
+    setIsPopupOpen(true);
   };
 
   const handleClosePopup = () => {
@@ -97,8 +101,39 @@ const Dashboard = () => {
     }
   };
 
+  const getPushToken = async (username: string): Promise<string | null> => {
+    try {
+      const response = await fetch("http://localhost:8000/app/getpushtoken", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          "username": username
+        }),
+        credentials: 'include',
+        mode: 'cors'
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error, status: ${response.status}`);
+      }
+  
+      const result = await response.json();
+      if (result.Code === 200) {
+        return result.Message;
+      }
+
+      console.log(result);
+      return result;
+  
+    } catch (error) {
+      console.error("Error fetching push token:", error);
+      return null;
+    }
+  };
+
   const handleAcceptCall = () => {
-    // Add your call acceptance logic here
     setIsIncomingCallPopupOpen(false);
     setIncomingCallUser(null);
   };
@@ -162,9 +197,10 @@ const Dashboard = () => {
                Profile for {selectedUser.FirstName} {selectedUser.LastName}
             </h3>
             <p className={styles.popupDescription}>
-              <strong>Year:</strong> {selectedUser.Year}<br/>
-              <strong>DSA Experience:</strong> {selectedUser.TakenDSA ? 'Yes' : 'None'}<br/>
-              <strong>Description:</strong> {selectedUser.Description}
+              Year: {selectedUser.Year}<br/>
+              DSA Experience: {selectedUser.TakenDSA ? 'Yes' : 'No'}<br/>
+              Description: {selectedUser.Description}
+              Joe?: {userPushToken}
             </p>
             <div className={styles.popupButtons}>
               <button className={styles.videoCallButton}>
