@@ -22,7 +22,7 @@ func getUserInfo(writer http.ResponseWriter, request *http.Request) {
 	// Get an instance of the user's account
 	username := request.Context().Value("username").(string)
 	userAccount := tools.EmailInDatabase(username, usersCollection)
-	if err != nil {
+	if err != nil || userAccount == nil {
 		api.InternalErrorHandler(writer)
 		return
 	}
