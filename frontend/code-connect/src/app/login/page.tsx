@@ -44,7 +44,8 @@ const Login = () => {
         now.setTime(now.getTime() + 10 * 60 * 1000); //expires in 10 minutes
         const expires = now.toUTCString();
         document.cookie = `session_token=${token}; expires=${expires}; path=/;`;
-
+        document.cookie =  `username=${email}; expires=${expires}; path=/;`;
+        
         // If there is a valid token, redirect to the dashboard
         if (token) {
           setSuccess("Username and password correct. This user exists in the database.");

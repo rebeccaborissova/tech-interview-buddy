@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import styles from "./Profile.module.css";
 import { useRouter } from "next/navigation";
-import { getToken } from "../utils/token";
+import { getToken } from "../utils/cookies";
 
 interface UserProfile {
   Username: string;
