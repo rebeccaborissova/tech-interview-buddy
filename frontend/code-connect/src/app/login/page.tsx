@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const Login = () => {
@@ -10,15 +10,8 @@ const Login = () => {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
 
-  console.log("poop");
-
-  useEffect(() => {
-    console.log("document.cookie before calling login", document.cookie);
-  }, []);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("Poop");
 
     //input validation
     if (!email.trim() || !password.trim() ) {
@@ -107,7 +100,6 @@ const Login = () => {
   );
 };
 
-// inline styles for simplicity
 const styles = {
   container: {
     display: "flex",
