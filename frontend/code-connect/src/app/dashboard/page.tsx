@@ -37,13 +37,22 @@ const Dashboard = () => {
   };
 
   const handleSelectUser = async (user: User) => {
-    const token = await getPushToken(user.Email);
-    sendPushNotification(token || "", generateJitsiRoom());
-
-    setUserPushToken(token);
     setSelectedUser(user);
     setIsPopupOpen(true);
   };
+
+  const handleRequestCall = async () => {
+    // Generate a Jitsi room
+    setJitsiRoom(generateJitsiRoom());
+
+    // Send a push notification to the selected user
+    const token = await getPushToken(selectedUser?.Email || "");
+    sendPushNotification(token || "", jitsiRoom || "");
+    setUserPushToken(token);
+
+    // Redirect to the Jitsi room
+    router.push(jitsiRoom || "/dashboard");
+  }
 
   const handleClosePopup = () => {
     setIsPopupOpen(false);
@@ -71,17 +80,20 @@ const Dashboard = () => {
         toast(payload?.notification?.body || "Unknown notification");
       }
     })
+
+    // Check if the user is logged in
     const token = getToken();
     if (!token) {
       router.push("/login");
     }
+
     setSessionToken(token);
     fetchActiveUsers();
   }, []);
 
+  // Send a push notification to the user you want to video call
   const sendPushNotification = async (pushToken: string, jitsiRoom: string) => {
     try {
-      console.log('Preparing fetch request to /api/notification');
       const response = await fetch("/api/notification", {
         method: "POST",
         headers: {
@@ -94,9 +106,6 @@ const Dashboard = () => {
         credentials: 'include',
         mode: 'cors'
       });
-
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers));
   
       if (!response.ok) {
         throw new Error(`HTTP error, status: ${response.status}`);
@@ -123,8 +132,11 @@ const Dashboard = () => {
         mode: 'cors'
       });
 
+      // Parse the list of active users
       const result = await response.json();
       const parsedUsers = JSON.parse(result.Message) as User[];
+
+      // Check if the list of active users is valid and set the state with the list of active users
       if (parsedUsers && parsedUsers.length > 0) {
         setActiveUsers(parsedUsers);
       } else {
@@ -234,10 +246,9 @@ const Dashboard = () => {
               Year: {selectedUser.Year}<br/>
               DSA Experience: {selectedUser.TakenDSA ? 'Yes' : 'No'}<br/>
               Description: {selectedUser.Description}
-              Joe?: {userPushToken}
             </p>
             <div className={styles.popupButtons}>
-              <button className={styles.videoCallButton}>
+              <button className={styles.videoCallButton} onClick={handleRequestCall}>
                 Request Video Call
               </button>
               <button
