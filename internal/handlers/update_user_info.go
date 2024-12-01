@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
-	"net/http"
 	"errors"
+	"net/http"
 
 	"CODE_CONNECT_API/api"
 	"CODE_CONNECT_API/internal/tools"
@@ -13,17 +13,17 @@ import (
 
 func updateUserInfo(writer http.ResponseWriter, request *http.Request) {
 	var (
-		MalformedRequestError  = errors.New("Malformed request body")
-		PasswordUpdateError = errors.New("Unable to update user password")
+		MalformedRequestError = errors.New("Malformed request body")
+		// PasswordUpdateError   = errors.New("Unable to update user password")
 		FNameUpdateError = errors.New("Unable to update user first name")
 		LNameUpdateError = errors.New("Unable to update user last name")
-		DSAUpdateError = errors.New("Unable to update user DSA status")
-		YearUpdateError = errors.New("Unable to update user year")
-		DescUpdateError = errors.New("Unable to update user description")
+		DSAUpdateError   = errors.New("Unable to update user DSA status")
+		YearUpdateError  = errors.New("Unable to update user year")
+		DescUpdateError  = errors.New("Unable to update user description")
 
-		params = api.SignUpParams{}
+		params = api.UserUpdateParams{}
 	)
-	
+
 	// Decode HTTP request body into params struct
 	decoder := json.NewDecoder(request.Body)
 	err := decoder.Decode(&params)
@@ -39,7 +39,7 @@ func updateUserInfo(writer http.ResponseWriter, request *http.Request) {
 		api.InternalErrorHandler(writer)
 		return
 	}
-	usersCollection := tools.GetSessionCollection(store.DB)
+	usersCollection := tools.GetUserCollection(store.DB)
 
 	username := request.Context().Value("username").(string)
 	userAccount := tools.EmailInDatabase(username, usersCollection)
@@ -47,18 +47,20 @@ func updateUserInfo(writer http.ResponseWriter, request *http.Request) {
 	// Check to see which fields need to be updated (TODO: email?)
 	// if params.Username != userAccount.Email {}
 
-	passwordsMatch, err := tools.IsCorrectPassword(username, params.Authorization, usersCollection)
-	if err != nil {
-		api.InternalErrorHandler(writer)
-		return
-	}
-	if !passwordsMatch {
-		err = tools.UpdatePassword(username, params.Authorization, usersCollection)
-		if err != nil {
-			api.RequestErrorHandler(writer, PasswordUpdateError)
-			return
-		}
-	}
+	// Useful if the password ever needs to be changed in the future
+	// passwordsMatch, err := tools.IsCorrectPassword(username, params.Authorization, usersCollection)
+	// if err != nil {
+	// 	api.InternalErrorHandler(writer)
+	// 	return
+	// }
+	// if !passwordsMatch {
+	// 	err = tools.UpdatePassword(username, params.Authorization, usersCollection)
+	// 	if err != nil {
+	// 		api.RequestErrorHandler(writer, PasswordUpdateError)
+	// 		return
+	// 	}
+	// }
+
 	if params.FirstName != userAccount.FirstName {
 		err = tools.UpdateFirstName(username, params.FirstName, usersCollection)
 		if err != nil {
@@ -73,8 +75,8 @@ func updateUserInfo(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 	}
-	if params.DSA != userAccount.TakenDSA {
-		err = tools.UpdateDSA(username, params.DSA, usersCollection)
+	if params.TakenDSA != userAccount.TakenDSA {
+		err = tools.UpdateDSA(username, params.TakenDSA, usersCollection)
 		if err != nil {
 			api.RequestErrorHandler(writer, DSAUpdateError)
 			return
@@ -96,7 +98,7 @@ func updateUserInfo(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	var response = api.SimpleResponse{
-		Code: http.StatusOK,
+		Code:    http.StatusOK,
 		Message: "Successfully updated user fields",
 	}
 

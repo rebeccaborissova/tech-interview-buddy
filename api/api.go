@@ -24,13 +24,22 @@ type LoginResponse struct {
 
 // Sign-Up parameters
 type SignUpParams struct {
-	Username string
+	Username      string
 	Authorization string
-	FirstName string
-	LastName string
-	DSA bool
-	Year int
-	Description string
+	FirstName     string
+	LastName      string
+	TakenDSA      bool
+	Year          int
+	Description   string
+}
+
+type UserUpdateParams struct {
+	Username      string
+	FirstName     string
+	LastName      string
+	TakenDSA      bool
+	Year          int
+	Description   string
 }
 
 // Sign-Up reponse
@@ -57,12 +66,12 @@ type UserInfoResponse struct {
 	Code int
 
 	// User attributes
-	Username string
-	FirstName string
-	LastName  string
-	InvitedBy string
-	TakenDSA bool
-	Year   int
+	Username    string
+	FirstName   string
+	LastName    string
+	InvitedBy   string
+	TakenDSA    bool
+	Year        int
 	Description string
 }
 
@@ -82,7 +91,7 @@ type Error struct {
 
 // GetPushTokenRequest structure
 type GetPushTokenRequest struct {
-    Username string 
+	Username string
 }
 
 func writeError(writer http.ResponseWriter, message string, code int) {
