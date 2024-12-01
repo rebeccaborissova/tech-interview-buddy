@@ -7,6 +7,7 @@ import { generateToken, messaging } from '../firebase/firebase.js';
 import { onMessage } from "firebase/messaging";
 import { getToken } from "../utils/token";
 import { useRouter } from "next/navigation";
+import { generateJitsiRoom } from "../utils/jitsi";
 
 interface User {
   Email: string;
@@ -32,6 +33,9 @@ const Dashboard = () => {
   const handleSelectUser = async (user: User) => {
     const tokeny = await getPushToken(user.Email);
     console.log("Successfully got Push token of user:", tokeny);
+
+    sendPushNotification(tokeny || "");
+
     setUserPushToken(tokeny);
     setSelectedUser(user);
     setIsPopupOpen(true);
@@ -51,7 +55,7 @@ const Dashboard = () => {
         setIncomingCallUser(payload?.notification?.body || "Unknown User");
         setIsIncomingCallPopupOpen(true);
       } else {
-        toast(payload?.notification?.body || "hi");
+        toast(payload?.notification?.body || "Unknown notification");
       }
     })
     const token = getToken();
@@ -72,6 +76,36 @@ const Dashboard = () => {
     const pushToken = await generateToken();
     console.log("Push token:", pushToken);
   };
+
+  const sendPushNotification = async (pushToken: string) => {
+    try {
+      console.log('Preparing fetch request to /api/notification');
+      const response = await fetch("/api/notification", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          pushToken
+        }),
+        credentials: 'include',
+        mode: 'cors'
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers));
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error, status: ${response.status}`);
+      }
+  
+      const result = await response.json();
+      console.log("Push notification sent:", result);
+  
+    } catch (error) {
+      console.error("Error sending push notification:", error);
+    }
+  }
 
   const fetchActiveUsers = async () => {
     console.log("sessionToken in api call: ", sessionToken);
@@ -134,8 +168,13 @@ const Dashboard = () => {
   };
 
   const handleAcceptCall = () => {
+    //Navigate to a video call page
+    const jitstRoomUrl = generateJitsiRoom();
+
     setIsIncomingCallPopupOpen(false);
     setIncomingCallUser(null);
+
+    router.push(jitstRoomUrl);
   };
 
   return (
