@@ -31,11 +31,12 @@ const Dashboard = () => {
   const router = useRouter();
 
   const handleSelectUser = async (user: User) => {
-    setUserPushToken(await getPushToken(user.Email));
-    console.log("Successfully got Push token of user:", userPushToken);
+    const tokeny = await getPushToken(user.Email);
+    console.log("Successfully got Push token of user:", tokeny);
 
-    sendPushNotification(userPushToken || "", generateJitsiRoom());
+    sendPushNotification(tokeny || "", generateJitsiRoom());
 
+    setUserPushToken(tokeny);
     setSelectedUser(user);
     setIsPopupOpen(true);
   };
