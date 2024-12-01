@@ -98,7 +98,33 @@ const ProfilePage = () => {
     router.push("/login");
   };
 
-  const handleDeleteProfile = () => alert("Delete Profile button clicked!");
+  // requests for user sign out inside of this method
+  const handleDeleteProfile = async () => {
+    alert("Delete Profile button clicked!");
+
+    try {
+      const response = await fetch("http://localhost:8000/app/userdelete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete account.");
+      }
+
+      const data = await response.json();
+      console.log("Deleted user account:", data)
+
+    } catch (error) {
+      console.log("Error deleting account:", error)
+    }
+
+    document.cookie = "session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    router.push("/");
+  }
 
   const handleEditProfile = () => {
     setIsEditing(true);
