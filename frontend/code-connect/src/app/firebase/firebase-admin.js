@@ -1,25 +1,33 @@
 import "server-only"
 
 const admin = require('firebase-admin');
-const serviceAccount = require('../../firebase-admin-config.json');
+const serviceAccount = require('../../../firebase-admin-config.json');
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-}, "firebase-admin");
+try {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),  // Fix: use serviceAccount instead of fireConfig
+  })
+  console.log('Initialized.')
+} catch (error) {
+  /*
+   * We skip the "already exists" message which is
+   * not an actual error when we're hot-reloading.
+   */
+  if (!/already exists/u.test(error.message)) {
+    console.error('Firebase admin initialization error', error.stack)
+  }
+}
 
-export const sendNotification = async (registrationToken, title, body) => {
+export default admin
+
+export const sendNotification = async (registrationToken) => {
     const message = {
-        data: {
-        title: title,
-        body: body
-        },
-        token: registrationToken
+      notification: {  // Change data to notification for proper FCM format
+        title: "Incoming Call",
+        body: "Someone wants to connect with you!"
+      },
+      token: registrationToken
     };
-    admin.messaging().send(message)
-        .then((response) => {
-        console.log('Notification sent:', response);
-        })
-        .catch((error) => {
-        console.error('Error sending notification:', error);
-        }); 
+    
+    return admin.messaging().send(message);  // Return the promise directly
 };
