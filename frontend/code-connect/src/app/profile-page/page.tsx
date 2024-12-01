@@ -98,10 +98,8 @@ const ProfilePage = () => {
     router.push("/login");
   };
 
-  // requests for user sign out inside of this method
+  // requests for user delete
   const handleDeleteProfile = async () => {
-    alert("Delete Profile button clicked!");
-
     try {
       const response = await fetch("http://localhost:8000/app/userdelete", {
         method: "POST",
@@ -159,10 +157,8 @@ const ProfilePage = () => {
       console.log("Updated Profile Data:", data);
 
       setIsEditing(false);
-      alert("Profile updated successfully!");
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile. Please try again.");
     }
   };
 
