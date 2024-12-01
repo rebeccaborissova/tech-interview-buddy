@@ -5,7 +5,7 @@ const serviceAccount = require('../../../firebase-admin-config.json');
 
 try {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),  // Fix: use serviceAccount instead of fireConfig
+    credential: admin.credential.cert(serviceAccount),
   })
   console.log('Initialized.')
 } catch (error) {
@@ -22,12 +22,12 @@ export default admin
 
 export const sendNotification = async (registrationToken) => {
     const message = {
-      notification: {  // Change data to notification for proper FCM format
+      notification: {
         title: "Incoming Call",
         body: "Someone wants to connect with you!"
       },
       token: registrationToken
     };
     
-    return admin.messaging().send(message);  // Return the promise directly
+    return admin.messaging().send(message);
 };

@@ -7,6 +7,7 @@ import { generateToken, messaging } from '../firebase/firebase.js';
 import { onMessage } from "firebase/messaging";
 import { getToken } from "../utils/token";
 import { useRouter } from "next/navigation";
+import { generateJitsiRoom } from "../utils/jitsi";
 
 interface User {
   Email: string;
@@ -54,7 +55,7 @@ const Dashboard = () => {
         setIncomingCallUser(payload?.notification?.body || "Unknown User");
         setIsIncomingCallPopupOpen(true);
       } else {
-        toast(payload?.notification?.body || "hi");
+        toast(payload?.notification?.body || "Unknown notification");
       }
     })
     const token = getToken();
@@ -167,8 +168,13 @@ const Dashboard = () => {
   };
 
   const handleAcceptCall = () => {
+    //Navigate to a video call page
+    const jitstRoomUrl = generateJitsiRoom();
+
     setIsIncomingCallPopupOpen(false);
     setIncomingCallUser(null);
+
+    router.push(jitstRoomUrl);
   };
 
   return (
