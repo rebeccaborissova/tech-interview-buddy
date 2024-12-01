@@ -20,10 +20,10 @@ try {
 
 export default admin
 
-export const sendNotification = async (registrationToken, jitsiRoom) => {
+export const sendNotification = async (registrationToken, jitsiRoom, username) => {
     const message = {
       notification: {
-        title: "Incoming Call",
+        title: "Incoming Call From " + username,
         body: jitsiRoom,
       },
       token: registrationToken

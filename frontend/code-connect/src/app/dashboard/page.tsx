@@ -26,7 +26,7 @@ const Dashboard = () => {
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [activeUsers, setActiveUsers] = useState<User[] | string>([]);
   const [isIncomingCallPopupOpen, setIsIncomingCallPopupOpen] = useState(false);
-  const [incomingCallUser, setIncomingCallUser] = useState<string | null>(null);
+  const [incomingCallMessage, setIncomingCallMessage] = useState<string | null>(null);
   const [userPushToken, setUserPushToken] = useState<string | null>(null);
   const [jitsiRoom, setJitsiRoom] = useState<string | null>(null);
   const router = useRouter();
@@ -47,11 +47,11 @@ const Dashboard = () => {
 
     // Send a push notification to the selected user
     const token = await getPushToken(selectedUser?.Email || "");
-    sendPushNotification(token || "", jitsiRoom || "");
+    sendPushNotification(token || "", jitsiRoom || "", selectedUser?.Email || "");
     setUserPushToken(token);
 
     // Redirect to the Jitsi room
-    router.push(jitsiRoom || "/dashboard");
+    //router.push(jitsiRoom || "/dashboard");
   }
 
   const handleClosePopup = () => {
@@ -61,7 +61,7 @@ const Dashboard = () => {
 
   const handleAcceptCall = () => {
     setIsIncomingCallPopupOpen(false);
-    setIncomingCallUser(null);
+    //setIncomingCallMessage(null);
 
     router.push(jitsiRoom || "/dashboard");
   };
@@ -72,9 +72,9 @@ const Dashboard = () => {
     // Listen for incoming messages
     onMessage(messaging, (payload) => {
       // If the notification is an incoming call, display a popup
-      if (payload?.notification?.title === 'Incoming Call') {
+      if (payload?.notification?.title?.startsWith('Incoming Call From')) {
         setJitsiRoom(payload?.notification?.body || "Unknown room");
-        setIncomingCallUser("Someone wants to connect with you!");
+        setIncomingCallMessage(payload?.notification?.title || "Unknown call");
         setIsIncomingCallPopupOpen(true);
       } else {
         toast(payload?.notification?.body || "Unknown notification");
@@ -92,7 +92,7 @@ const Dashboard = () => {
   }, []);
 
   // Send a push notification to the user you want to video call
-  const sendPushNotification = async (pushToken: string, jitsiRoom: string) => {
+  const sendPushNotification = async (pushToken: string, jitsiRoom: string, requestedUsername: string) => {
     try {
       const response = await fetch("/api/notification", {
         method: "POST",
@@ -101,7 +101,8 @@ const Dashboard = () => {
         },
         body: JSON.stringify({
           pushToken: pushToken,
-          body: jitsiRoom
+          body: jitsiRoom,
+          username: requestedUsername
         }),
         credentials: 'include',
         mode: 'cors'
@@ -153,6 +154,7 @@ const Dashboard = () => {
 
   // Fetch the push token for a given username
   const getPushToken = async (username: string): Promise<string | null> => {
+
     try {
       const response = await fetch("http://localhost:8000/app/getpushtoken", {
         method: "POST",
@@ -267,7 +269,7 @@ const Dashboard = () => {
         <div className={styles.popupOverlay}>
           <div className={styles.popup}>
             <h3 className={styles.popupTitle}>
-              Incoming Call from {incomingCallUser}
+              {incomingCallMessage}
             </h3>
             <div className={styles.popupButtons}>
               <button 
