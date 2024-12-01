@@ -69,7 +69,7 @@ func updateUserInfo(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 	if params.LastName != userAccount.LastName {
-		err = tools.UpdateFirstName(username, params.FirstName, usersCollection)
+		err = tools.UpdateLastName(username, params.LastName, usersCollection)
 		if err != nil {
 			api.RequestErrorHandler(writer, LNameUpdateError)
 			return
