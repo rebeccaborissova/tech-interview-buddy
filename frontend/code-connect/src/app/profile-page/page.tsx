@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import styles from "./Profile.module.css";
 import { useRouter } from "next/navigation";
-import { getToken } from "../utils/token";
+import { getToken } from "../utils/cookies";
 
 interface UserProfile {
   Username: string;
@@ -33,6 +33,7 @@ const ProfilePage = () => {
     fetchUserProfile();
   }, []);
 
+  // Fetch user profile data
   const fetchUserProfile = async () => {
     try {
       const response = await fetch("http://localhost:8000/app/userinfo", {
@@ -65,15 +66,14 @@ const ProfilePage = () => {
       setUserProfile(parsedData);
     } catch (error) {
       console.error("Error fetching user profile:", error);
-      router.push("/login"); // Redirect to login on error
+      router.push("/login");
     }
   };
 
   const handleBack = () => router.push("/dashboard");
 
-   
+  // Handles user sign out
   const handleSignOut = async () => {
-    // requests for user sign out
     try {
       const response = await fetch("http://localhost:8000/account/logout", {
         method: "POST",
@@ -98,7 +98,7 @@ const ProfilePage = () => {
     router.push("/login");
   };
 
-  // requests for user delete
+  // Handles delete profile
   const handleDeleteProfile = async () => {
     try {
       const response = await fetch("http://localhost:8000/app/userdelete", {
@@ -182,7 +182,7 @@ const ProfilePage = () => {
   };
 
   if (!userProfile) {
-    return <div>Loading...</div>; // Show loading while user data is being fetched
+    return <div>Loading...</div>;
   }
 
   return (

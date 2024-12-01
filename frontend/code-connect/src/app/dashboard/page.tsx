@@ -5,7 +5,7 @@ import styles from "./Dashboard.module.css";
 import toast, { Toaster } from 'react-hot-toast';
 import { generateToken, messaging } from '../firebase/firebase.js';
 import { onMessage } from "firebase/messaging";
-import { getToken } from "../utils/token";
+import { getToken, getUsername } from "../utils/cookies";
 import { useRouter } from "next/navigation";
 import { generateJitsiRoom } from "../utils/jitsi";
 
@@ -141,9 +141,13 @@ const Dashboard = () => {
       const result = await response.json();
       const parsedUsers = JSON.parse(result.Message) as User[];
 
+      // Exclude the user that matches document.cookie username
+      const username = getUsername();
+      const filteredUsers = parsedUsers.filter(user => user.Email !== username);
+
       // Check if the list of active users is valid and set the state with the list of active users
       if (parsedUsers && parsedUsers.length > 0) {
-        setActiveUsers(parsedUsers);
+        setActiveUsers(filteredUsers);
       } else {
         setActiveUsers("No active users found.");
       }
