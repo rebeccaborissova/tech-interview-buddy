@@ -28,15 +28,19 @@ const Dashboard = () => {
   const [isIncomingCallPopupOpen, setIsIncomingCallPopupOpen] = useState(false);
   const [incomingCallUser, setIncomingCallUser] = useState<string | null>(null);
   const [userPushToken, setUserPushToken] = useState<string | null>(null);
+  const [jitsiRoom, setJitsiRoom] = useState<string | null>(null);
   const router = useRouter();
 
+  const setPushToken = async () => {
+    const pushToken = await generateToken();
+    console.log("Push token:", pushToken);
+  };
+
   const handleSelectUser = async (user: User) => {
-    const tokeny = await getPushToken(user.Email);
-    console.log("Successfully got Push token of user:", tokeny);
+    const token = await getPushToken(user.Email);
+    sendPushNotification(token || "", generateJitsiRoom());
 
-    sendPushNotification(tokeny || "", generateJitsiRoom());
-
-    setUserPushToken(tokeny);
+    setUserPushToken(token);
     setSelectedUser(user);
     setIsPopupOpen(true);
   };
@@ -46,13 +50,22 @@ const Dashboard = () => {
     setSelectedUser(null);
   };
 
+  const handleAcceptCall = () => {
+    setIsIncomingCallPopupOpen(false);
+    setIncomingCallUser(null);
+
+    router.push(jitsiRoom || "/dashboard");
+  };
+
   useEffect(() => {
     setPushToken();
     
+    // Listen for incoming messages
     onMessage(messaging, (payload) => {
-      console.log(payload);
+      // If the notification is an incoming call, display a popup
       if (payload?.notification?.title === 'Incoming Call') {
-        setIncomingCallUser(payload?.notification?.body || "Unknown User");
+        setJitsiRoom(payload?.notification?.body || "Unknown room");
+        setIncomingCallUser("Someone wants to connect with you!");
         setIsIncomingCallPopupOpen(true);
       } else {
         toast(payload?.notification?.body || "Unknown notification");
@@ -63,19 +76,8 @@ const Dashboard = () => {
       router.push("/login");
     }
     setSessionToken(token);
+    fetchActiveUsers();
   }, []);
-
-  useEffect(() => {
-    console.log("Session token:", sessionToken);
-    if (sessionToken) {
-      fetchActiveUsers();
-    }
-  }, [sessionToken]);
-
-  const setPushToken = async () => {
-    const pushToken = await generateToken();
-    console.log("Push token:", pushToken);
-  };
 
   const sendPushNotification = async (pushToken: string, jitsiRoom: string) => {
     try {
@@ -108,6 +110,7 @@ const Dashboard = () => {
     }
   }
 
+  // Fetch the list of active users
   const fetchActiveUsers = async () => {
     console.log("sessionToken in api call: ", sessionToken);
     try {
@@ -136,6 +139,7 @@ const Dashboard = () => {
     }
   };
 
+  // Fetch the push token for a given username
   const getPushToken = async (username: string): Promise<string | null> => {
     try {
       const response = await fetch("http://localhost:8000/app/getpushtoken", {
@@ -158,8 +162,6 @@ const Dashboard = () => {
       if (result.Code === 200) {
         return result.Message;
       }
-
-      console.log(result);
       return result;
   
     } catch (error) {
@@ -168,15 +170,7 @@ const Dashboard = () => {
     }
   };
 
-  const handleAcceptCall = () => {
-    //Navigate to a video call page
-    const jitstRoomUrl = generateJitsiRoom();
-
-    setIsIncomingCallPopupOpen(false);
-    setIncomingCallUser(null);
-
-    router.push(jitstRoomUrl);
-  };
+  
 
   return (
     <div className={styles.container}>
