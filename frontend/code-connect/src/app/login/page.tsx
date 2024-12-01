@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getToken } from "../utils/token";
 
 const Login = () => {
   const router = useRouter();
@@ -27,50 +26,45 @@ const Login = () => {
       return;
     }
 
-    //check if there is already a valid token, if so, redirect to the dashboard
-    const cookiesToken = getToken();
-    if(cookiesToken) {
-      setTimeout(() => router.push("/dashboard"));
-    }
-    else {
-      try {
-        const response = await fetch("http://localhost:8000/account/login", {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            "Username": email,
-            "Authorization": password
-          })
-        });
+    // Send an HTTP request to the login endpoint
+    try {
+      const response = await fetch("http://localhost:8000/account/login", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          "Username": email,
+          "Authorization": password
+        }),
+        credentials: "include"
+      });
 
-        const result = await response.json();
-        
-        if (response.ok) {
-          setError(" ")
+      const result = await response.json();
+      
+      if (response.ok) {
+        setError(" ")
 
-          //if there is a valid response, set a cookie with the session token
-          const token = result.Session;
-          const now = new Date();
-          now.setTime(now.getTime() + 10 * 60 * 1000); //expires in 10 minutes
-          const expires = now.toUTCString();
-          document.cookie = `session_token=${token}; expires=${expires}; path=/;`;
+        //if there is a valid response, set a cookie with the session token
+        const token = result.Session;
+        const now = new Date();
+        now.setTime(now.getTime() + 10 * 60 * 1000); //expires in 10 minutes
+        const expires = now.toUTCString();
+        document.cookie = `session_token=${token}; expires=${expires}; path=/;`;
 
-          //if there is a valid token, redirect to the dashboard
-          if (token) {
-            setSuccess("Username and password correct. This user exists in the database.");
-            setTimeout(() => router.push("/dashboard"));
-          } else {
-            setError(result.Message)
-          }
+        //if there is a valid token, redirect to the dashboard
+        if (token) {
+          setSuccess("Username and password correct. This user exists in the database.");
+          setTimeout(() => router.push("/dashboard"));
         } else {
           setError(result.Message)
         }
-      } catch (err) {
-        console.error("Network request failed:", err);
-        setError("Network response error.");
+      } else {
+        setError(result.Message)
       }
+    } catch (err) {
+      console.error("Network request failed:", err);
+      setError("Network response error.");
     }
   };
 
