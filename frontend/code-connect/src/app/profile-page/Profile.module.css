@@ -52,7 +52,8 @@
     border-radius: 6px;
     border: 1px solid #ddd;
     font-size: 16px;
-    background-color: #f9f9f9;
+    background-color: #ffffff; /* Ensure good contrast */
+    color: #333333; /* Dark text for visibility */
   }
   
   .textarea {
@@ -68,7 +69,7 @@
   
   .editSaveButton {
     position: absolute;
-    bottom: 610px;
+    bottom: 580px;
     right: 20px;
     padding: 10px 20px;
     background-color: #0070f3;

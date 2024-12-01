@@ -6,22 +6,18 @@ import { useRouter } from "next/navigation";
 import { getToken } from "../utils/token";
 
 interface UserProfile {
-  Email: string;
+  Username: string;
   FirstName: string;
   LastName: string;
   Year: number;
   Description: string;
+  InvitedBy?: string; // Optional field to display who invited the user
+  TakenDSA?: boolean; // Optional field to display if DSA is taken
 }
 
 const ProfilePage = () => {
   const [sessionToken, setSessionToken] = useState<string | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    Email: "dummy.user@example.com",
-    FirstName: "Dummy",
-    LastName: "User",
-    Year: 2024,
-    Description: "This is a dummy profile for testing purposes.",
-  });
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const router = useRouter();
 
@@ -29,32 +25,120 @@ const ProfilePage = () => {
     const token = getToken();
     if (!token) {
       router.push("/login");
+      return;
     }
     setSessionToken(token);
+
+    // Fetch user profile
+    fetchUserProfile(token);
   }, []);
+
+  const fetchUserProfile = async (token: string) => {
+    try {
+      const response = await fetch("http://localhost:8000/app/userinfo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        mode: "cors",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch user profile.");
+      }
+
+      const data = await response.json();
+      console.log("Fetched User Profile Data:", data);
+
+      // Map response data to UserProfile
+      const parsedData: UserProfile = {
+        Username: data.Username,
+        FirstName: data.FirstName,
+        LastName: data.LastName,
+        Year: Number(data.Year), 
+        Description: data.Description,
+        InvitedBy: data.InvitedBy, 
+        TakenDSA: Boolean(data.TakenDSA), 
+      };
+
+      setUserProfile(parsedData);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      router.push("/login"); // Redirect to login on error
+    }
+  };
 
   const handleBack = () => router.push("/dashboard");
   const handleSignOut = () => {
     document.cookie = "session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     router.push("/login");
   };
+
   const handleDeleteProfile = () => alert("Delete Profile button clicked!");
 
   const handleEditProfile = () => {
     setIsEditing(true);
   };
 
-  const handleSaveChanges = () => {
-    console.log("Saving changes:", userProfile);
-    setIsEditing(false);
+  const handleSaveChanges = async () => {
+    if (!userProfile) return;
+
+    try {
+      const response = await fetch("http://localhost:8000/app/useredit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          "FirstName": userProfile.FirstName,
+          "LastName": userProfile.LastName,
+          "Username": userProfile.Username,
+          "TakenDSA": userProfile.TakenDSA,
+          "Year": userProfile.Year,
+          "Description": userProfile.Description,
+        }),
+        credentials: "include",
+        mode: 'cors',
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update profile.");
+      }
+
+      const data = await response.json();
+      console.log("Updated Profile Data:", data);
+
+      setIsEditing(false);
+      alert("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile. Please try again.");
+    }
   };
 
-  const handleInputChange = (field: keyof UserProfile, value: string | number) => {
-    setUserProfile((prevProfile) => ({
-      ...prevProfile,
-      [field]: value,
-    }));
+  const handleInputChange = (field: keyof UserProfile, value: string | number | boolean) => {
+    setUserProfile((prevProfile) => {
+      if (!prevProfile) return null;
+
+      // Type enforcement for specific fields
+      if (field === "Year" && typeof value === "string") {
+        value = Number(value); // Ensure Year is always a number
+      }
+      if (field === "TakenDSA" && typeof value === "string") {
+        value = value === "true"; // Convert string to boolean if necessary
+      }
+
+      return {
+        ...prevProfile,
+        [field]: value,
+      };
+    });
   };
+
+  if (!userProfile) {
+    return <div>Loading...</div>; // Show loading while user data is being fetched
+  }
 
   return (
     <div className={styles.container}>
@@ -92,16 +176,6 @@ const ProfilePage = () => {
             />
           </div>
           <div className={styles.inputContainer}>
-            <label className={styles.label}>Email</label>
-            <input
-              type="email"
-              value={userProfile.Email}
-              onChange={(e) => handleInputChange("Email", e.target.value)}
-              className={styles.input}
-              disabled={!isEditing}
-            />
-          </div>
-          <div className={styles.inputContainer}>
             <label className={styles.label}>Year</label>
             <input
               type="number"
@@ -120,6 +194,31 @@ const ProfilePage = () => {
               disabled={!isEditing}
             />
           </div>
+
+          {userProfile.InvitedBy && (
+            <div className={styles.inputContainer}>
+              <label className={styles.label}>Invited By</label>
+              <input
+                type="text"
+                value={userProfile.InvitedBy}
+                className={styles.input}
+                disabled
+              />
+            </div>
+          )}
+
+          {userProfile.TakenDSA !== undefined && (
+            <div className={styles.inputContainer}>
+              <label className={styles.label}>Taken DSA</label>
+              <input
+                type="checkbox"
+                checked={userProfile.TakenDSA}
+                onChange={(e) => handleInputChange("TakenDSA", e.target.checked)}
+                className={styles.checkbox}
+                disabled={!isEditing}
+              />
+            </div>
+          )}
         </form>
 
         {/* Edit/Save Changes Button */}
