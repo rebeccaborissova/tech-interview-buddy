@@ -4,6 +4,26 @@
   height: 100vh;
   background: linear-gradient(to right, #6a11cb, #2575fc);
   color: #fff;
+  position: relative;
+}
+
+/* View Profile Button */
+.viewProfileButton {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+.viewProfileButton:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Left Panel */
@@ -85,7 +105,7 @@
   font-size: 20px;
   font-weight: bold;
   margin-bottom: 10px;
-  color: #333;
+  color: #6a11cb;
 }
 
 .popupDescription {
@@ -94,8 +114,17 @@
   color: #666;
 }
 
-.videoCallButton {
-  padding: 5px 5px;
+.popupButtons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.videoCallButton,
+.popupCloseButton {
+  flex: 1;
+  max-width: 150px;
+  padding: 6px;
   background-color: #0070f3;
   color: #fff;
   border: none;
@@ -103,22 +132,16 @@
   cursor: pointer;
   transition: background 0.3s;
   font-size: 16px;
+  text-align: center;
+}
+
+.popupCloseButton {
+  background-color: #e0e0e0;
+  color: #333;
 }
 
 .videoCallButton:hover {
   background-color: #005bb5;
-}
-
-.popupCloseButton {
-  padding: 10px;
-  background-color: #e0e0e0;
-  color: #333;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s;
-  font-size: 14px;
-  margin-top: 10px;
 }
 
 .popupCloseButton:hover {
@@ -139,11 +162,11 @@
 .instructionsBackground {
   background-color: rgba(255, 255, 255, 0.1);
   color: #fff;
-  padding: 30px 40px; /* Increased horizontal padding */
+  padding: 30px 40px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  max-width: 900px; /* Wider box */
-  width: 100%; 
+  max-width: 900px;
+  width: 100%;
   text-align: center;
 }
 
@@ -165,57 +188,4 @@
   font-size: 16px;
   margin-left: auto;
   margin-right: auto;
-}
-
-/* Profile Bar */
-.profileBar {
-  width: 50px;
-  background: #fff;
-  box-shadow: -2px 0 15px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  transition: width 0.3s ease;
-  position: relative;
-}
-
-.profileBar:before {
-  content: '←';
-  font-size: 24px;
-  color: #6a11cb;
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translate(50%, -50%);
-  transition: color 0.3s;
-}
-
-.profileBar:hover:before {
-  color: #2575fc;
-}
-
-.profileBarExpanded {
-  width: 200px;
-  padding: 20px;
-}
-
-.profileIcon {
-  font-size: 24px;
-  margin-top: 25px; /* Lowered head icon */
-  color: #6a11cb;
-}
-
-.profileContent {
-  text-align: left;
-}
-
-.profileContentTitle {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.profileContentText {
-  font-size: 14px;
 }
