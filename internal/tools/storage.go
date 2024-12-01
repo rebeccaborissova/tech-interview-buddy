@@ -131,7 +131,10 @@ func UpdatePassword(email, password string, users *mongo.Collection) (passErr er
 		password, _ = argon2id.CreateHash(password, argon2id.DefaultParams)
 		update := bson.D{{Key: "$set", Value: bson.D{{Key: "password", Value: password}}}}
 
-		_, err := users.UpdateOne(context.TODO(), filter, update)
+		result, err := users.UpdateOne(context.TODO(), filter, update)
+
+		fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
+
 		return err
 	} else {
 		return InvalidPasswordError
@@ -141,7 +144,7 @@ func UpdatePassword(email, password string, users *mongo.Collection) (passErr er
 
 func UpdateDSA(email string, dsa bool, users *mongo.Collection) (err error) {
 	filter := bson.D{{Key: "email", Value: email}}
-	update := bson.D{{Key: "$set", Value: bson.D{{Key: "TakenDSA", Value: dsa}}}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "takendsa", Value: dsa}}}}
 
 	_, err = users.UpdateOne(context.TODO(), filter, update)
 	return err
@@ -149,9 +152,11 @@ func UpdateDSA(email string, dsa bool, users *mongo.Collection) (err error) {
 
 func UpdateYear(email string, year int, users *mongo.Collection) (err error) {
 	filter := bson.D{{Key: "email", Value: email}}
-	update := bson.D{{Key: "$set", Value: bson.D{{Key: "Year", Value: year}}}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "year", Value: year}}}}
 
-	_, err = users.UpdateOne(context.TODO(), filter, update)
+	result, err := users.UpdateOne(context.TODO(), filter, update)
+
+	fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
 	return err
 }
 
@@ -160,9 +165,11 @@ func UpdateFirstName(email, firstname string, users *mongo.Collection) (err erro
 
 	filter := bson.D{{Key: "email", Value: email}}
 	if ContainsLettersOnly(firstname) {
-		update := bson.D{{Key: "$set", Value: bson.D{{Key: "FirstName", Value: firstname}}}}
+		update := bson.D{{Key: "$set", Value: bson.D{{Key: "firstname", Value: firstname}}}}
 
-		_, err = users.UpdateOne(context.TODO(), filter, update)
+		result, err := users.UpdateOne(context.TODO(), filter, update)
+
+		fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
 		return err
 	} else {
 		return InvalidFirstError
@@ -174,9 +181,11 @@ func UpdateLastName(email, lastname string, users *mongo.Collection) (err error)
 
 	filter := bson.D{{Key: "email", Value: email}}
 	if ContainsLettersOnly(lastname) {
-		update := bson.D{{Key: "$set", Value: bson.D{{Key: "FirstName", Value: lastname}}}}
+		update := bson.D{{Key: "$set", Value: bson.D{{Key: "lastname", Value: lastname}}}}
 
-		_, err = users.UpdateOne(context.TODO(), filter, update)
+		result, err := users.UpdateOne(context.TODO(), filter, update)
+
+		fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
 		return err
 	} else {
 		return InvalidFirstError
@@ -185,9 +194,11 @@ func UpdateLastName(email, lastname string, users *mongo.Collection) (err error)
 
 func UpdateDescription(email, description string, users *mongo.Collection) (err error) {
 	filter := bson.D{{Key: "email", Value: email}}
-	update := bson.D{{Key: "$set", Value: bson.D{{Key: "Description", Value: description}}}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "description", Value: description}}}}
 
-	_, err = users.UpdateOne(context.TODO(), filter, update)
+	result, err := users.UpdateOne(context.TODO(), filter, update)
+
+	fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
 	return err
 }
 
@@ -196,7 +207,9 @@ func UpdateUserInvite(email, user string, users *mongo.Collection) (err error) {
 	filter := bson.D{{Key: "email", Value: email}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "invitedby", Value: user}}}}
 
-	_, err = users.UpdateOne(context.TODO(), filter, update)
+	result, err := users.UpdateOne(context.TODO(), filter, update)
+
+	fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
 	return err
 }
 
@@ -204,7 +217,9 @@ func UpdatePushToken(email, token string, users *mongo.Collection) (err error) {
 	filter := bson.D{{Key: "email", Value: email}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "pushtoken", Value: token}}}}
 
-	_, err = users.UpdateOne(context.TODO(), filter, update)
+	result, err := users.UpdateOne(context.TODO(), filter, update)
+
+	fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
 	return err
 }
 
