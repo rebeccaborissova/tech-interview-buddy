@@ -18,7 +18,6 @@ func getActiveUsers(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	usersCollection := tools.GetUserCollection(store.DB)
-	// sessionCollection := tools.GetUserCollection(store.DB)
 
 	// Get an array of active users
 	activeAccounts, err := tools.GetOnlineAccounts(usersCollection)
