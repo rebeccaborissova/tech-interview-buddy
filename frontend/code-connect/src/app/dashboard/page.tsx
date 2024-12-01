@@ -34,7 +34,7 @@ const Dashboard = () => {
     const tokeny = await getPushToken(user.Email);
     console.log("Successfully got Push token of user:", tokeny);
 
-    sendPushNotification(tokeny || "");
+    sendPushNotification(tokeny || "", generateJitsiRoom());
 
     setUserPushToken(tokeny);
     setSelectedUser(user);
@@ -77,7 +77,7 @@ const Dashboard = () => {
     console.log("Push token:", pushToken);
   };
 
-  const sendPushNotification = async (pushToken: string) => {
+  const sendPushNotification = async (pushToken: string, jitsiRoom: string) => {
     try {
       console.log('Preparing fetch request to /api/notification');
       const response = await fetch("/api/notification", {
@@ -86,7 +86,8 @@ const Dashboard = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          pushToken
+          pushToken: pushToken,
+          body: jitsiRoom
         }),
         credentials: 'include',
         mode: 'cors'
