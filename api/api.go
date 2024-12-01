@@ -33,6 +33,15 @@ type SignUpParams struct {
 	Description   string
 }
 
+type UserUpdateParams struct {
+	Username      string
+	FirstName     string
+	LastName      string
+	TakenDSA      bool
+	Year          int
+	Description   string
+}
+
 // Sign-Up reponse
 type SignUpResponse struct {
 	// Success code

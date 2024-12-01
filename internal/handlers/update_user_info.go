@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"errors"
 	"net/http"
 
 	"CODE_CONNECT_API/api"
@@ -14,14 +15,14 @@ import (
 func updateUserInfo(writer http.ResponseWriter, request *http.Request) {
 	var (
 		MalformedRequestError = errors.New("Malformed request body")
-		PasswordUpdateError   = errors.New("Unable to update user password")
-		FNameUpdateError      = errors.New("Unable to update user first name")
-		LNameUpdateError      = errors.New("Unable to update user last name")
-		DSAUpdateError        = errors.New("Unable to update user DSA status")
-		YearUpdateError       = errors.New("Unable to update user year")
-		DescUpdateError       = errors.New("Unable to update user description")
+		// PasswordUpdateError   = errors.New("Unable to update user password")
+		FNameUpdateError = errors.New("Unable to update user first name")
+		LNameUpdateError = errors.New("Unable to update user last name")
+		DSAUpdateError   = errors.New("Unable to update user DSA status")
+		YearUpdateError  = errors.New("Unable to update user year")
+		DescUpdateError  = errors.New("Unable to update user description")
 
-		params = api.SignUpParams{}
+		params = api.UserUpdateParams{}
 	)
 
 	// Decode HTTP request body into params struct
@@ -47,18 +48,20 @@ func updateUserInfo(writer http.ResponseWriter, request *http.Request) {
 	// Check to see which fields need to be updated (TODO: email?)
 	// if params.Username != userAccount.Email {}
 
-	passwordsMatch, err := tools.IsCorrectPassword(username, params.Authorization, usersCollection)
-	if err != nil {
-		api.InternalErrorHandler(writer)
-		return
-	}
-	if !passwordsMatch {
-		err = tools.UpdatePassword(username, params.Authorization, usersCollection)
-		if err != nil {
-			api.RequestErrorHandler(writer, PasswordUpdateError)
-			return
-		}
-	}
+	// Useful if the password ever needs to be changed in the future
+	// passwordsMatch, err := tools.IsCorrectPassword(username, params.Authorization, usersCollection)
+	// if err != nil {
+	// 	api.InternalErrorHandler(writer)
+	// 	return
+	// }
+	// if !passwordsMatch {
+	// 	err = tools.UpdatePassword(username, params.Authorization, usersCollection)
+	// 	if err != nil {
+	// 		api.RequestErrorHandler(writer, PasswordUpdateError)
+	// 		return
+	// 	}
+	// }
+
 	if params.FirstName != userAccount.FirstName {
 		err = tools.UpdateFirstName(username, params.FirstName, usersCollection)
 		if err != nil {
