@@ -13,7 +13,7 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    //input validation
+    // Input validation
     if (!email.trim() || !password.trim() ) {
       setError("Please enter your email and password.");
       return;
@@ -38,14 +38,14 @@ const Login = () => {
       if (response.ok) {
         setError(" ")
 
-        //if there is a valid response, set a cookie with the session token
+        // If there is a valid response, set a cookie with the session token
         const token = result.Session;
         const now = new Date();
         now.setTime(now.getTime() + 10 * 60 * 1000); //expires in 10 minutes
         const expires = now.toUTCString();
         document.cookie = `session_token=${token}; expires=${expires}; path=/;`;
 
-        //if there is a valid token, redirect to the dashboard
+        // If there is a valid token, redirect to the dashboard
         if (token) {
           setSuccess("Username and password correct. This user exists in the database.");
           setTimeout(() => router.push("/dashboard"));

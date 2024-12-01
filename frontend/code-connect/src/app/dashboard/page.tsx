@@ -43,15 +43,18 @@ const Dashboard = () => {
 
   const handleRequestCall = async () => {
     // Generate a Jitsi room
-    setJitsiRoom(generateJitsiRoom());
+    const requestedJitsiRoom = generateJitsiRoom();
 
     // Send a push notification to the selected user
     const token = await getPushToken(selectedUser?.Email || "");
-    sendPushNotification(token || "", jitsiRoom || "", selectedUser?.Email || "");
+    sendPushNotification(token || "", requestedJitsiRoom || "", selectedUser?.Email || "");
+
+    // Set the Jitsi room and user push token
+    setJitsiRoom(requestedJitsiRoom);
     setUserPushToken(token);
 
     // Redirect to the Jitsi room
-    //router.push(jitsiRoom || "/dashboard");
+    router.push(jitsiRoom || "/dashboard");
   }
 
   const handleClosePopup = () => {
@@ -71,6 +74,7 @@ const Dashboard = () => {
     
     // Listen for incoming messages
     onMessage(messaging, (payload) => {
+      console.log("Message received. Payload:", payload);
       // If the notification is an incoming call, display a popup
       if (payload?.notification?.title?.startsWith('Incoming Call From')) {
         setJitsiRoom(payload?.notification?.body || "Unknown room");
