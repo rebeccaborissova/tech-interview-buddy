@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
-	"net/http"
 	"errors"
+	"net/http"
 
 	"CODE_CONNECT_API/api"
 	"CODE_CONNECT_API/internal/tools"
@@ -13,17 +13,17 @@ import (
 
 func updateUserInfo(writer http.ResponseWriter, request *http.Request) {
 	var (
-		MalformedRequestError  = errors.New("Malformed request body")
-		PasswordUpdateError = errors.New("Unable to update user password")
-		FNameUpdateError = errors.New("Unable to update user first name")
-		LNameUpdateError = errors.New("Unable to update user last name")
-		DSAUpdateError = errors.New("Unable to update user DSA status")
-		YearUpdateError = errors.New("Unable to update user year")
-		DescUpdateError = errors.New("Unable to update user description")
+		MalformedRequestError = errors.New("Malformed request body")
+		PasswordUpdateError   = errors.New("Unable to update user password")
+		FNameUpdateError      = errors.New("Unable to update user first name")
+		LNameUpdateError      = errors.New("Unable to update user last name")
+		DSAUpdateError        = errors.New("Unable to update user DSA status")
+		YearUpdateError       = errors.New("Unable to update user year")
+		DescUpdateError       = errors.New("Unable to update user description")
 
 		params = api.SignUpParams{}
 	)
-	
+
 	// Decode HTTP request body into params struct
 	decoder := json.NewDecoder(request.Body)
 	err := decoder.Decode(&params)
@@ -73,8 +73,8 @@ func updateUserInfo(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 	}
-	if params.DSA != userAccount.TakenDSA {
-		err = tools.UpdateDSA(username, params.DSA, usersCollection)
+	if params.TakenDSA != userAccount.TakenDSA {
+		err = tools.UpdateDSA(username, params.TakenDSA, usersCollection)
 		if err != nil {
 			api.RequestErrorHandler(writer, DSAUpdateError)
 			return
@@ -96,7 +96,7 @@ func updateUserInfo(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	var response = api.SimpleResponse{
-		Code: http.StatusOK,
+		Code:    http.StatusOK,
 		Message: "Successfully updated user fields",
 	}
 

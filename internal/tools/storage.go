@@ -360,6 +360,16 @@ func CheckSession(token Session, sessions, users *mongo.Collection) (err error) 
 			}
 		}
 		return TokenExpired
+	} else {
+		filter := bson.D{{Key: "email", Value: token.Username}}
+		update := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: true}}}}
+
+		_, err = users.UpdateOne(context.TODO(), filter, update)
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				return nil
+			}
+		}
 	}
 	return nil
 }

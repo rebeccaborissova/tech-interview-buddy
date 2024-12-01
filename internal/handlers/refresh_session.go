@@ -27,8 +27,8 @@ func refreshUserSession(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	// Make the session expire after 1 hour (periodic refresh required)
-	expiresAt := time.Now().Add(time.Hour)
+	// Make the session expire after 2 hours (periodic refresh required)
+	expiresAt := time.Now().Add(2 * time.Hour)
 
 	// Delete the older session token
 	username := request.Context().Value("username").(string)
