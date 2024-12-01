@@ -70,11 +70,15 @@ const ProfilePage = () => {
   };
 
   const handleBack = () => router.push("/dashboard");
+
+   
   const handleSignOut = () => {
+    // requests for user sign out
     document.cookie = "session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     router.push("/login");
   };
 
+  // requests for user sign out inside of this method
   const handleDeleteProfile = () => alert("Delete Profile button clicked!");
 
   const handleEditProfile = () => {
