@@ -32,7 +32,7 @@ func refreshUserSession(writer http.ResponseWriter, request *http.Request) {
 
 	// Delete the older session token
 	username := request.Context().Value("username").(string)
-	tools.DeleteSessionByUsername(username, sessionCollection)
+	tools.DeleteSessionByUsername(username, sessionCollection, usersCollection)
 
 	// Add the new session to the database
 	tools.AddSession(newSessionToken, username, expiresAt, sessionCollection, usersCollection)

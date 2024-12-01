@@ -17,19 +17,20 @@ func deleteUser(writer http.ResponseWriter, request *http.Request) {
 		api.InternalErrorHandler(writer)
 		return
 	}
-	usersCollection := tools.GetSessionCollection(store.DB)
+	seshCollection := tools.GetSessionCollection(store.DB)
+	userCollection := tools.GetUserCollection(store.DB)
 
 	username := request.Context().Value("username").(string)
 
 	// Purge all active sessions for the given account
-	err = tools.DeleteSessionByUsername(username, usersCollection)
+	err = tools.DeleteSessionByUsername(username, seshCollection, userCollection)
 	if err != nil {
 		api.InternalErrorHandler(writer)
 		return
 	}
 
 	// Delete the user's account
-	err = tools.DeleteAccount(username, usersCollection)
+	err = tools.DeleteAccount(username, userCollection)
 	if err != nil {
 		api.InternalErrorHandler(writer)
 		return

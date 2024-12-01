@@ -41,7 +41,7 @@ func AuthenticateUser(next http.Handler) http.Handler {
 		sessionCollection := tools.GetSessionCollection(store.DB)
 
 		// Get an instance of the user's session
-		userSession := tools.GetSession(sessionUUID, sessionCollection)
+		userSession, err := tools.GetSession(sessionUUID, sessionCollection)
 
 		// Ensure that the session is valid
 		err = tools.CheckSession(userSession, sessionCollection, usersCollection)

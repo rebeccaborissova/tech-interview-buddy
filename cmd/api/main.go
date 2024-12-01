@@ -4,18 +4,16 @@ package main
 
 import (
 	"CODE_CONNECT_API/internal/handlers"
-	"CODE_CONNECT_API/internal/tools"
 	"fmt"
 	"net/http"
 
-	"github.com/alexedwards/argon2id"
 	"github.com/go-chi/chi"
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
 	// Initial DB setup
-	store, err := tools.NewPostgresStore() // Store is a *PostgresStore that is *Mongo.Database
+	/* store, err := tools.NewPostgresStore() // Store is a *PostgresStore that is *Mongo.Database
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,7 +81,7 @@ func main() {
 	// UPDATE OPERATION
 
 	fmt.Println()
-	fmt.Println("I am not dead. Yay!")
+	fmt.Println("I am not dead. Yay!") */
 
 	// Initial API setup
 	var router *chi.Mux = chi.NewRouter()

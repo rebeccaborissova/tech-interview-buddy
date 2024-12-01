@@ -84,9 +84,9 @@ func IsCorrectPassword(email string, password string, users *mongo.Collection) (
 // Assumption that the user will be deleting their account while logged in so there is always be an account.
 // Just in case, an err will return.
 func DeleteAccount(email string, user *mongo.Collection) (err error) {
-	filter := bson.D{{Key: "email", Value: email}}
+	userFilter := bson.D{{Key: "email", Value: email}}
 
-	result, err := user.DeleteOne(context.TODO(), filter)
+	result, err := user.DeleteOne(context.TODO(), userFilter)
 	fmt.Printf("Number of documents deleted: %d\n", result.DeletedCount)
 	return err
 }
@@ -253,6 +253,7 @@ func EmailInDatabase(email string, user *mongo.Collection) (account *Account) {
 	filter := bson.M{"email": email}
 
 	err := user.FindOne(context.TODO(), filter).Decode(&acc)
+	log.Error(err)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil
@@ -272,7 +273,7 @@ func ContainsLettersOnly(str string) (applies bool) {
 }
 
 // Return all accounts online without password.
-func GetOnlineAccounts(user *mongo.Collection) (accounts []AccountWithoutPassword, err error) {
+func GetOnlineAccounts(currUser string, user, sessions *mongo.Collection) (accounts []AccountWithoutPassword, err error) {
 	filter := bson.D{{Key: "online", Value: true}}
 
 	cursor, _ := user.Find(context.TODO(), filter)
@@ -283,8 +284,15 @@ func GetOnlineAccounts(user *mongo.Collection) (accounts []AccountWithoutPasswor
 	var toReturn []AccountWithoutPassword
 
 	for _, account := range results {
-		toInsert := MakeAccountWOPassword(account.Email, account.FirstName, account.LastName, account.TakenDSA, account.Year, account.Description)
-		toReturn = append(toReturn, toInsert)
+		if(account.Email != currUser){
+			sesh, err := GetSessionByUser(account.Email, sessions)
+			if err != nil && sesh.IsExpired() {
+				DeleteSessionByUsername(account.Email, sessions, user)
+			} else {
+				toInsert := MakeAccountWOPassword(account.Email, account.FirstName, account.LastName, account.TakenDSA, account.Year, account.Description)
+				toReturn = append(toReturn, toInsert)
+			}
+		}
 	}
 
 	return toReturn, err
@@ -334,7 +342,7 @@ func CheckSession(token Session, sessions, users *mongo.Collection) (err error) 
 	}
 
 	if sesh.IsExpired() {
-		DeleteSession(token, sessions)
+		DeleteSession(token, sessions, users)
 		if EmailInDatabase(token.Username, users) == nil {
 			return UserNotFound
 		}
@@ -367,30 +375,12 @@ func GetPushToken(email string, users *mongo.Collection) (pushToken *string) {
 }
 
 // Assumes that session exists in the database.
-func DeleteSession(token Session, sessions *mongo.Collection) (err error) {
-	var TokenNotFound = errors.New("Token not found.")
-	filter := bson.D{{Key: "username", Value: token.Username}}
+func DeleteSession(token Session, sessions *mongo.Collection, user *mongo.Collection) (err error) {
+	var TokenNotFound = errors.New("Session token not found.")
+	userFilter := bson.D{{Key: "email", Value: token.Username}}
+	userUpdate := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: false}}}}
 
-	sessionFilter := bson.D{{Key: "email", Value: token.Username}}
-	// update := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: false}}}}
-
-	_, err = sessions.DeleteMany(context.TODO(), sessionFilter)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return TokenNotFound
-		}
-	}
-
-	_, err = sessions.DeleteMany(context.TODO(), filter)
-	return err
-}
-
-func DeleteSessionByUsername(email string, sessions *mongo.Collection) (err error) {
-	var TokenNotFound = errors.New("Token not found.")
-	filter := bson.D{{Key: "username", Value: email}}
-
-	sessionFilter := bson.D{{Key: "email", Value: email}}
-	// update := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: false}}}}
+	sessionFilter := bson.D{{Key: "username", Value: token.Username}}
 
 	_, err = sessions.DeleteMany(context.TODO(), sessionFilter)
 	if err != nil {
@@ -399,20 +389,57 @@ func DeleteSessionByUsername(email string, sessions *mongo.Collection) (err erro
 		}
 	}
 
-	_, err = sessions.DeleteMany(context.TODO(), filter)
+	_, err = user.UpdateOne(context.TODO(), userFilter, userUpdate)
 	return err
 }
 
-func GetSession(uuid uuid.UUID, sessions *mongo.Collection) (session Session) {
+func DeleteSessionByUsername(email string, sessions, user *mongo.Collection) (err error) {
+	var TokenNotFound = errors.New("Session token not found.")
+	userFilter := bson.D{{Key: "email", Value: email}}
+	userUpdate := bson.D{{Key: "$set", Value: bson.D{{Key: "online", Value: false}}}}
+
+	sessionFilter := bson.D{{Key: "username", Value: email}}
+
+	_, err = sessions.DeleteMany(context.TODO(), sessionFilter)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return TokenNotFound
+		}
+	}
+
+	_, err = user.UpdateOne(context.TODO(), userFilter, userUpdate)
+	return err
+}
+
+func GetSession(uuid uuid.UUID, sessions *mongo.Collection) (ession Session, err error) {
+	TokenNotFound := errors.New("Token was not found.")
 	var sesh Session
 	filter := bson.D{{Key: "token", Value: uuid}}
 
-	err := sessions.FindOne(context.TODO(), filter).Decode(&sesh)
+	err = sessions.FindOne(context.TODO(), filter).Decode(&sesh)
 	if err != nil {
-		log.Error(err)
+		return sesh, TokenNotFound
 	}
 
-	return sesh
+	return sesh, nil
+}
+
+func GetSessionByUser(user string, sessions *mongo.Collection)(session Session, err error){
+	TokenNotFound := errors.New("Token was not found.")
+	
+	var sesh Session
+	filter := bson.D{{Key: "username", Value: user}}
+
+	err = sessions.FindOne(context.TODO(), filter).Decode(&sesh)
+	if err != nil{
+		return sesh, TokenNotFound
+	}
+
+	return sesh, nil
+}
+
+func DeleteAllSessions(sessions *mongo.Collection){
+	sessions.DeleteMany(context.TODO(), bson.D{{}})
 }
 
 // SESSION HANDLING ENDS HERE //

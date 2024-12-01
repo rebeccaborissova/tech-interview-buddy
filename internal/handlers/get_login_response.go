@@ -73,7 +73,7 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		}
 
 		// Check if the existing session is valid
-		userSession := tools.GetSession(sessionUUID, sessionCollection)
+		userSession, err := tools.GetSession(sessionUUID, sessionCollection)
 		err = tools.CheckSession(userSession, sessionCollection, usersCollection)
 		if err != nil {
 			// If the session did not pass the check then continue and issue a new session :3
@@ -103,7 +103,7 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	// Delete any sessions that may have existed previously for this user
-	err = tools.DeleteSessionByUsername(username, sessionCollection)
+	err = tools.DeleteSessionByUsername(username, sessionCollection, usersCollection)
 
 	// Get account with primary key "username"
 	account := tools.EmailInDatabase(username, usersCollection)
@@ -134,7 +134,7 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 	expiresAt := time.Now().Add(2 * time.Hour)
 
 	// Delete old sessions
-	tools.DeleteSessionByUsername(username, sessionCollection)
+	tools.DeleteSessionByUsername(username, sessionCollection, usersCollection)
 
 	// Add the new session to the database
 	tools.AddSession(sessionToken, username, expiresAt, sessionCollection, usersCollection)

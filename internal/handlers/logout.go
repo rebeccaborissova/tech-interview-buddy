@@ -33,16 +33,22 @@ func logout(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	sessionCollection := tools.GetSessionCollection(store.DB)
+	userCollection := tools.GetSessionCollection(store.DB)
 
 	sessionUUID, err := uuid.FromString(sessionToken)
 	if err != nil {
 		api.InternalErrorHandler(writer)
 		return
 	}
-	userSession := tools.GetSession(sessionUUID, sessionCollection)
+	userSession, err := tools.GetSession(sessionUUID, sessionCollection)
+	if err != nil {
+		log.Error(err)
+		api.InternalErrorHandler(writer)
+		return
+	}
 
 	// Remove the session from the database
-	tools.DeleteSessionByUsername(userSession.Username, sessionCollection)
+	tools.DeleteSessionByUsername(userSession.Username, sessionCollection, userCollection)
 
 	var response = api.SimpleResponse{
 		Code:    http.StatusOK,
