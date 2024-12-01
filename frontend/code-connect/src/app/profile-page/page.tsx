@@ -72,13 +72,32 @@ const ProfilePage = () => {
   const handleBack = () => router.push("/dashboard");
 
    
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     // requests for user sign out
+    try {
+      const response = await fetch("http://localhost:8000/account/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to sign out user.");
+      }
+
+      const data = await response.json();
+      console.log("Signed user out:", data);
+
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+
     document.cookie = "session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     router.push("/login");
   };
 
-  // requests for user sign out inside of this method
   const handleDeleteProfile = () => alert("Delete Profile button clicked!");
 
   const handleEditProfile = () => {
