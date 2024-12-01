@@ -21,7 +21,7 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 		MalformedRequestError  = errors.New("Malformed request body")
 		IncompleteRequestError = errors.New("There are empty fields")
 		UserExistsError        = errors.New("An account with this email already exists")
-		
+
 		params = api.SignUpParams{}
 		err    error
 	)
@@ -32,8 +32,8 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 
 	log.WithFields(log.Fields{
 		"Signup parameters": params,
-		"Request Header":   request.Header,
-		"Request Body":     request.Body,
+		"Request Header":    request.Header,
+		"Request Body":      request.Body,
 	}).Info("HTTP request received")
 
 	if err != nil {
@@ -43,12 +43,12 @@ func getSignUpReponse(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	var (
-		username   = params.Username
-		token      = params.Authorization
-		firstName  = params.FirstName
-		lastName   = params.LastName
-		takenDSA   = params.DSA
-		schoolYear = params.Year
+		username    = params.Username
+		token       = params.Authorization
+		firstName   = params.FirstName
+		lastName    = params.LastName
+		takenDSA    = params.TakenDSA
+		schoolYear  = params.Year
 		description = params.Description
 	)
 
