@@ -11,8 +11,8 @@ interface UserProfile {
   LastName: string;
   Year: number;
   Description: string;
-  InvitedBy?: string; // Optional field to display who invited the user
-  TakenDSA?: boolean; // Optional field to display if DSA is taken
+  InvitedBy?: string;
+  TakenDSA?: boolean;
 }
 
 const ProfilePage = () => {
@@ -30,10 +30,10 @@ const ProfilePage = () => {
     setSessionToken(token);
 
     // Fetch user profile
-    fetchUserProfile(token);
+    fetchUserProfile();
   }, []);
 
-  const fetchUserProfile = async (token: string) => {
+  const fetchUserProfile = async () => {
     try {
       const response = await fetch("http://localhost:8000/app/userinfo", {
         method: "POST",

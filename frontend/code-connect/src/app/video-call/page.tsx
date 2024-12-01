@@ -9,7 +9,7 @@ const JitsiMeetComponent = () => {
         setIsClient(true);
     }, []);
 
-    if (!isClient) return null; // Avoid rendering on the server
+    if (!isClient) return null;
 
     const roomName = "YourRoomNameHere";
 

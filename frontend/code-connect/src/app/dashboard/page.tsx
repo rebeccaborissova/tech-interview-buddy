@@ -26,74 +26,87 @@ const Dashboard = () => {
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [activeUsers, setActiveUsers] = useState<User[] | string>([]);
   const [isIncomingCallPopupOpen, setIsIncomingCallPopupOpen] = useState(false);
-  const [incomingCallUser, setIncomingCallUser] = useState<string | null>(null);
+  const [incomingCallMessage, setIncomingCallMessage] = useState<string | null>(null);
   const [userPushToken, setUserPushToken] = useState<string | null>(null);
+  const [jitsiRoom, setJitsiRoom] = useState<string | null>(null);
   const router = useRouter();
-
-  const handleSelectUser = async (user: User) => {
-    const tokeny = await getPushToken(user.Email);
-    console.log("Successfully got Push token of user:", tokeny);
-
-    sendPushNotification(tokeny || "");
-
-    setUserPushToken(tokeny);
-    setSelectedUser(user);
-    setIsPopupOpen(true);
-  };
-
-  const handleClosePopup = () => {
-    setIsPopupOpen(false);
-    setSelectedUser(null);
-  };
-
-  useEffect(() => {
-    setPushToken();
-    
-    onMessage(messaging, (payload) => {
-      console.log(payload);
-      if (payload?.notification?.title === 'Incoming Call') {
-        setIncomingCallUser(payload?.notification?.body || "Unknown User");
-        setIsIncomingCallPopupOpen(true);
-      } else {
-        toast(payload?.notification?.body || "Unknown notification");
-      }
-    })
-    const token = getToken();
-    if (!token) {
-      router.push("/login");
-    }
-    setSessionToken(token);
-  }, []);
-
-  useEffect(() => {
-    console.log("Session token:", sessionToken);
-    if (sessionToken) {
-      fetchActiveUsers();
-    }
-  }, [sessionToken]);
 
   const setPushToken = async () => {
     const pushToken = await generateToken();
     console.log("Push token:", pushToken);
   };
 
-  const sendPushNotification = async (pushToken: string) => {
+  const handleSelectUser = async (user: User) => {
+    setSelectedUser(user);
+    setIsPopupOpen(true);
+  };
+
+  const handleRequestCall = async () => {
+    // Generate a Jitsi room
+    setJitsiRoom(generateJitsiRoom());
+
+    // Send a push notification to the selected user
+    const token = await getPushToken(selectedUser?.Email || "");
+    sendPushNotification(token || "", jitsiRoom || "", selectedUser?.Email || "");
+    setUserPushToken(token);
+
+    // Redirect to the Jitsi room
+    //router.push(jitsiRoom || "/dashboard");
+  }
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleAcceptCall = () => {
+    setIsIncomingCallPopupOpen(false);
+    //setIncomingCallMessage(null);
+
+    router.push(jitsiRoom || "/dashboard");
+  };
+
+  useEffect(() => {
+    setPushToken();
+    
+    // Listen for incoming messages
+    onMessage(messaging, (payload) => {
+      // If the notification is an incoming call, display a popup
+      if (payload?.notification?.title?.startsWith('Incoming Call From')) {
+        setJitsiRoom(payload?.notification?.body || "Unknown room");
+        setIncomingCallMessage(payload?.notification?.title || "Unknown call");
+        setIsIncomingCallPopupOpen(true);
+      } else {
+        toast(payload?.notification?.body || "Unknown notification");
+      }
+    })
+
+    // Check if the user is logged in
+    const token = getToken();
+    if (!token) {
+      router.push("/login");
+    }
+
+    setSessionToken(token);
+    fetchActiveUsers();
+  }, []);
+
+  // Send a push notification to the user you want to video call
+  const sendPushNotification = async (pushToken: string, jitsiRoom: string, requestedUsername: string) => {
     try {
-      console.log('Preparing fetch request to /api/notification');
       const response = await fetch("/api/notification", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          pushToken
+          pushToken: pushToken,
+          body: jitsiRoom,
+          username: requestedUsername
         }),
         credentials: 'include',
         mode: 'cors'
       });
-
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers));
   
       if (!response.ok) {
         throw new Error(`HTTP error, status: ${response.status}`);
@@ -107,6 +120,7 @@ const Dashboard = () => {
     }
   }
 
+  // Fetch the list of active users
   const fetchActiveUsers = async () => {
     console.log("sessionToken in api call: ", sessionToken);
     try {
@@ -119,8 +133,11 @@ const Dashboard = () => {
         mode: 'cors'
       });
 
+      // Parse the list of active users
       const result = await response.json();
       const parsedUsers = JSON.parse(result.Message) as User[];
+
+      // Check if the list of active users is valid and set the state with the list of active users
       if (parsedUsers && parsedUsers.length > 0) {
         setActiveUsers(parsedUsers);
       } else {
@@ -135,7 +152,9 @@ const Dashboard = () => {
     }
   };
 
+  // Fetch the push token for a given username
   const getPushToken = async (username: string): Promise<string | null> => {
+
     try {
       const response = await fetch("http://localhost:8000/app/getpushtoken", {
         method: "POST",
@@ -157,24 +176,12 @@ const Dashboard = () => {
       if (result.Code === 200) {
         return result.Message;
       }
-
-      console.log(result);
       return result;
   
     } catch (error) {
       console.error("Error fetching push token:", error);
       return null;
     }
-  };
-
-  const handleAcceptCall = () => {
-    //Navigate to a video call page
-    const jitstRoomUrl = generateJitsiRoom();
-
-    setIsIncomingCallPopupOpen(false);
-    setIncomingCallUser(null);
-
-    router.push(jitstRoomUrl);
   };
 
   return (
@@ -239,10 +246,9 @@ const Dashboard = () => {
               Year: {selectedUser.Year}<br/>
               DSA Experience: {selectedUser.TakenDSA ? 'Yes' : 'No'}<br/>
               Description: {selectedUser.Description}
-              Joe?: {userPushToken}
             </p>
             <div className={styles.popupButtons}>
-              <button className={styles.videoCallButton}>
+              <button className={styles.videoCallButton} onClick={handleRequestCall}>
                 Request Video Call
               </button>
               <button
@@ -261,7 +267,7 @@ const Dashboard = () => {
         <div className={styles.popupOverlay}>
           <div className={styles.popup}>
             <h3 className={styles.popupTitle}>
-              Incoming Call from {incomingCallUser}
+              {incomingCallMessage}
             </h3>
             <div className={styles.popupButtons}>
               <button 
