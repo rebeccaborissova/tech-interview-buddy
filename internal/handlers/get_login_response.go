@@ -56,6 +56,7 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 		api.InternalErrorHandler(writer)
 		return
 	}
+	
 	usersCollection := tools.GetUserCollection(store.DB)
 	sessionCollection := tools.GetSessionCollection(store.DB)
 

@@ -39,7 +39,7 @@ func updateUserInfo(writer http.ResponseWriter, request *http.Request) {
 		api.InternalErrorHandler(writer)
 		return
 	}
-	usersCollection := tools.GetSessionCollection(store.DB)
+	usersCollection := tools.GetUserCollection(store.DB)
 
 	username := request.Context().Value("username").(string)
 	userAccount := tools.EmailInDatabase(username, usersCollection)

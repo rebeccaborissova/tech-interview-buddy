@@ -295,6 +295,10 @@ func GetOnlineAccounts(currUser string, user, sessions *mongo.Collection) (accou
 		}
 	}
 
+	if len(toReturn) == 0{
+		fmt.Println("MEOW MEOW MEOW MEOW MEOW.")
+	}
+
 	return toReturn, err
 }
 

@@ -33,7 +33,7 @@ func logout(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	sessionCollection := tools.GetSessionCollection(store.DB)
-	userCollection := tools.GetSessionCollection(store.DB)
+	userCollection := tools.GetUserCollection(store.DB)
 
 	sessionUUID, err := uuid.FromString(sessionToken)
 	if err != nil {
