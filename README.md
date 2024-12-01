@@ -6,12 +6,14 @@
   - `go mod tidy`
   - `go run cmd/api/main.go`
 - Note: `go mod` commands are only required for the first use.
+
 ### Frontend
 - Make sure you have `Node.js` installed
 - From the folder you cloned this repo type the following in your terminal
   - `cd frontend/code-connect`
   - `npm install`
   - `npm run dev`
+- Add a `.env.local` and `firebase-admin-config.json` in the frontend/code-connect directory to set the API keys for the firebase functionality
 - Note: `npm install` is only required for the first use.
 
 ### Jitsi Server
