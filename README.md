@@ -14,6 +14,10 @@
   - `npm run dev`
 - Note: `npm install` is only required for the first use.
 
+### Jitsi Server
+- Our Jitsi Server is self-hosted using the following guide: [https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-quickstart/](https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-docker)
+- Any references to "actual-terribly-longhorn.ngrok-free.app" are a reference to our ngrok tunnel running the self-hosted jitsi server
+
 # Public API Endpoints
 - Documentation can be found [here](https://github.com/rebeccaborissova/tech-interview-buddy/wiki/Public-API-Endpoints)
 
