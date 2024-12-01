@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./Dashboard.module.css";
+import toast, { Toaster } from 'react-hot-toast';
+import { generateToken, messaging } from '../firebase/firebase.js';
+import { onMessage } from "firebase/messaging";
 import { getToken } from "../utils/token";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface User {
@@ -19,15 +21,20 @@ interface User {
 const Dashboard = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isProfileBarExpanded, setIsProfileBarExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [activeUsers, setActiveUsers] = useState<User[] | string>([]);
+  const [isIncomingCallPopupOpen, setIsIncomingCallPopupOpen] = useState(false);
+  const [incomingCallUser, setIncomingCallUser] = useState<string | null>(null);
+  const [userPushToken, setUserPushToken] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSelectUser = (user: User) => {
+  const handleSelectUser = async (user: User) => {
+    const tokeny = await getPushToken(user.Email);
+    console.log("Successfully got Push token of user:", tokeny);
+    setUserPushToken(tokeny);
     setSelectedUser(user);
-    setIsPopupOpen(true); // Open popup for the selected user
+    setIsPopupOpen(true);
   };
 
   const handleClosePopup = () => {
@@ -36,8 +43,19 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    setPushToken();
+    
+    onMessage(messaging, (payload) => {
+      console.log(payload);
+      if (payload?.notification?.title === 'Incoming Call') {
+        setIncomingCallUser(payload?.notification?.body || "Unknown User");
+        setIsIncomingCallPopupOpen(true);
+      } else {
+        toast(payload?.notification?.body || "hi");
+      }
+    })
     const token = getToken();
-    if(!token) {
+    if (!token) {
       router.push("/login");
     }
     setSessionToken(token);
@@ -45,18 +63,23 @@ const Dashboard = () => {
 
   useEffect(() => {
     console.log("Session token:", sessionToken);
-    if(sessionToken) {
+    if (sessionToken) {
       fetchActiveUsers();
     }
   }, [sessionToken]);
 
+  const setPushToken = async () => {
+    const pushToken = await generateToken();
+    console.log("Push token:", pushToken);
+  };
+
   const fetchActiveUsers = async () => {
-    console.log("sessionToken in api call: ", sessionToken)
+    console.log("sessionToken in api call: ", sessionToken);
     try {
       const response = await fetch("http://localhost:8000/app/activeusers", {
         method: "POST",
         headers: {
-          'Content-Type':'application/json',
+          'Content-Type': 'application/json',
         },
         credentials: 'include',
         mode: 'cors'
@@ -78,8 +101,55 @@ const Dashboard = () => {
     }
   };
 
+  const getPushToken = async (username: string): Promise<string | null> => {
+    try {
+      const response = await fetch("http://localhost:8000/app/getpushtoken", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          "username": username
+        }),
+        credentials: 'include',
+        mode: 'cors'
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error, status: ${response.status}`);
+      }
+  
+      const result = await response.json();
+      if (result.Code === 200) {
+        return result.Message;
+      }
+
+      console.log(result);
+      return result;
+  
+    } catch (error) {
+      console.error("Error fetching push token:", error);
+      return null;
+    }
+  };
+
+  const handleAcceptCall = () => {
+    setIsIncomingCallPopupOpen(false);
+    setIncomingCallUser(null);
+  };
+
   return (
     <div className={styles.container}>
+      <Toaster position="top-right" />
+      
+      {/* View My Profile Button */}
+      <button 
+        className={styles.viewProfileButton} 
+        onClick={() => router.push('/profile-page')}
+      >
+        View My Profile
+      </button>
+      
       {/* Left Panel */}
       <div className={styles.leftPanel}>
         <h2 className={styles.panelTitle}>Active Users</h2>
@@ -118,35 +188,19 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Profile Bar */}
-      <div
-        className={`${styles.profileBar} ${
-          isProfileBarExpanded ? styles.profileBarExpanded : ""
-        }`}
-        onClick={() => setIsProfileBarExpanded(!isProfileBarExpanded)}
-      >
-        <div className={styles.profileIcon}>👤</div>
-        {isProfileBarExpanded && (
-          <div className={styles.profileContent}>
-            <h3 className={styles.profileContentTitle}>User Profile</h3>
-            <p className={styles.profileContentText}>
-              Select options and manage your profile here.
-            </p>
-          </div>
-        )}
-      </div>
 
-      {/* Popup Modal */}
+      {/* Outgoing Call Request Popup */}
       {isPopupOpen && selectedUser && (
         <div className={styles.popupOverlay}>
           <div className={styles.popup}>
             <h3 className={styles.popupTitle}>
-              Video Call Request for {selectedUser.FirstName} {selectedUser.LastName}
+               Profile for {selectedUser.FirstName} {selectedUser.LastName}
             </h3>
             <p className={styles.popupDescription}>
               Year: {selectedUser.Year}<br/>
               DSA Experience: {selectedUser.TakenDSA ? 'Yes' : 'No'}<br/>
               Description: {selectedUser.Description}
+              Joe?: {userPushToken}
             </p>
             <div className={styles.popupButtons}>
               <button className={styles.videoCallButton}>
@@ -157,6 +211,31 @@ const Dashboard = () => {
                 className={styles.popupCloseButton}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Incoming Call Popup */}
+      {isIncomingCallPopupOpen && (
+        <div className={styles.popupOverlay}>
+          <div className={styles.popup}>
+            <h3 className={styles.popupTitle}>
+              Incoming Call from {incomingCallUser}
+            </h3>
+            <div className={styles.popupButtons}>
+              <button 
+                className={styles.videoCallButton}
+                onClick={handleAcceptCall}
+              >
+                Accept Video Call
+              </button>
+              <button
+                onClick={() => setIsIncomingCallPopupOpen(false)}
+                className={styles.popupCloseButton}
+              >
+                Decline
               </button>
             </div>
           </div>
