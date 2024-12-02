@@ -47,7 +47,7 @@ const Dashboard = () => {
 
     // Send a push notification to the selected user
     const token = await getPushToken(selectedUser?.Email || "");
-    sendPushNotification(token || "", requestedJitsiRoom || "", selectedUser?.Email || "");
+    sendPushNotification(token || "", requestedJitsiRoom || "", getUsername() || "");
 
     // Set the Jitsi room and user push token
     setJitsiRoom(requestedJitsiRoom);
