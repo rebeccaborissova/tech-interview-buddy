@@ -23,7 +23,7 @@ func deleteUser(writer http.ResponseWriter, request *http.Request) {
 	username := request.Context().Value("username").(string)
 
 	// Purge all active sessions for the given account
-	err = tools.DeleteSessionByUsername(username, sessionCollection)
+	err = tools.DeleteSessionByUsername(username, usersCollection, sessionCollection)
 	if err != nil {
 		api.InternalErrorHandler(writer)
 		return
