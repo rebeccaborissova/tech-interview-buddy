@@ -103,7 +103,7 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	// Delete any sessions that may have existed previously for this user
-	err = tools.DeleteSessionByUsername(username, sessionCollection)
+	err = tools.DeleteSessionByUsername(username, usersCollection, sessionCollection)
 
 	// Get account with primary key "username"
 	account := tools.EmailInDatabase(username, usersCollection)
@@ -134,7 +134,7 @@ func getLoginReponse(writer http.ResponseWriter, request *http.Request) {
 	expiresAt := time.Now().Add(2 * time.Hour)
 
 	// Delete old sessions
-	tools.DeleteSessionByUsername(username, sessionCollection)
+	tools.DeleteSessionByUsername(username, usersCollection, sessionCollection)
 
 	// Add the new session to the database
 	tools.AddSession(sessionToken, username, expiresAt, sessionCollection, usersCollection)
