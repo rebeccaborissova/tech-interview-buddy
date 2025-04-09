@@ -32,7 +32,8 @@
 ### Login Page
 <img width="1507" alt="image" src="https://github.com/user-attachments/assets/187355d6-e1ed-4a83-b651-4d2747cfdb62" /><br>
 ### Dashboard
-<img width="1503" alt="image" src="https://github.com/user-attachments/assets/20cf9a4f-fc5e-474f-8cc5-f85875b53fae" />
-
+<img width="1503" alt="image" src="https://github.com/user-attachments/assets/20cf9a4f-fc5e-474f-8cc5-f85875b53fae" /><br>
+### Joining A Call
+![Joining A Call Demo](https://github.com/user-attachments/assets/e7ac8ff5-12e5-413a-938f-3c7d3e173b26)
 
 
