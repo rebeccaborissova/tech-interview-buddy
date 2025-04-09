@@ -25,3 +25,14 @@
 
 # Jira Board
 [link!](https://rebeccaborissov.atlassian.net/jira/software/projects/SCRUM/boards/1/timeline)
+
+# Preview
+### Landing Page
+<img width="1483" alt="image" src="https://github.com/user-attachments/assets/a0bd16cd-5e9e-4efa-9f8f-d1d36976a7c3" />
+### Login Page
+<img width="1507" alt="image" src="https://github.com/user-attachments/assets/187355d6-e1ed-4a83-b651-4d2747cfdb62" />
+### Dashboard
+<img width="1503" alt="image" src="https://github.com/user-attachments/assets/20cf9a4f-fc5e-474f-8cc5-f85875b53fae" />
+
+
+
